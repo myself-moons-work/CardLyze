@@ -128,3 +128,24 @@ The application supports three card transaction schemas defined in `app/cards.py
   - Obtains session ID on page load.
   - Binds `beforeunload` / `unload` events with `navigator.sendBeacon` or `fetch` with `keepalive: true` to trigger `DELETE /api/session`.
 
+
+---
+
+## 7. Implementation Directives & Architecture Addenda
+
+The following engineering directives apply across all subsequent phases:
+1. **Strict Content-Security-Policy Compliance**:
+   - `Content-Security-Policy: default-src 'self'` strictly blocks inline scripts (`<script>...</script>`), inline event listeners (`onclick="..."`), inline `<style>` tags, and inline HTML `style="..."` attributes.
+   - All frontend behaviors, stylings, and layout rules must strictly reside in external JavaScript files (`app/static/js/*.js`) and external stylesheets (`app/static/css/*.css`).
+   - Excel exports and streaming downloads must be tested to ensure compliance under this policy without requiring inline blobs or unsafe eval/styles.
+2. **Lazy Client Session Initialization**:
+   - Sessions must be created lazily on the first file upload rather than proactively on page load.
+   - This prevents idle/phantom sessions from consuming slots in the 10-session concurrent limit when users merely browse or reload the landing page.
+3. **Session Concurrency Cap Calibration**:
+   - The default limit of 10 concurrent active sessions will be scientifically measured and calibrated based on actual memory consumption during the Phase 6 performance testing suite (using ~50 MB benchmark files).
+4. **Synthetic Test Data Exclusivity**:
+   - Pytest suites must use purely synthetic test data generated in-memory.
+   - Real transaction files must never be required for automated tests. Any test referencing an optional local real file must skip automatically when absent and be excluded from default test runs.
+5. **Single Source of Truth for Card Configurations**:
+   - `app/cards.py` is the sole source of truth for schema definitions, column lists, date parsing configurations, and type mappings.
+   - Legacy scripts or notebooks must import directly from `app.cards`.

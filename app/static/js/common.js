@@ -138,10 +138,7 @@
         }
     });
 
-    // Automatically initialize session on DOM load
-    document.addEventListener('DOMContentLoaded', () => {
-        initSession().catch(() => {});
-    });
+    // Note: Session is created lazily on first upload / API call, not eagerly on page load.
 
     // Expose CardLyze namespace
     window.CardLyze = {
