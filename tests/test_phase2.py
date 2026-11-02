@@ -37,7 +37,41 @@ def create_in_memory_xlsx(rows: list) -> bytes:
     return buffer.getvalue()
 
 
-# 1. Correct column count succeeds per card
+# --- Card Configs Sanity & Literal Counts (Item 4) ---
+
+def test_cards_config_sanity_and_literal_counts():
+    """Assert literal column counts 29, 68, 61, no duplicate names, and all referenced columns exist."""
+    # Literal hard-coded count checks (not len() of config)
+    assert len(VISA_EXPECTED_COLUMNS) == 29
+    assert len(PINELABS_EXPECTED_COLUMNS) == 68
+    assert len(VEGAPAY_EXPECTED_COLUMNS) == 61
+
+    assert len(set(VISA_EXPECTED_COLUMNS)) == 29
+    assert len(set(PINELABS_EXPECTED_COLUMNS)) == 68
+    assert len(set(VEGAPAY_EXPECTED_COLUMNS)) == 61
+
+    for card_key, card_cfg in CARDS.items():
+        exp_cols = set(card_cfg.expected_columns)
+        assert len(exp_cols) == len(card_cfg.expected_columns), f"Duplicate column in {card_key}"
+
+        # Assert all referenced schema columns exist in expected_columns
+        for col in card_cfg.numeric_cols:
+            assert col in exp_cols, f"{card_key}: numeric_col '{col}' not in expected_columns"
+        for col in card_cfg.date_cols.keys():
+            assert col in exp_cols, f"{card_key}: date_col '{col}' not in expected_columns"
+        for col in card_cfg.id_like_cols:
+            assert col in exp_cols, f"{card_key}: id_like_col '{col}' not in expected_columns"
+        for col in card_cfg.pad_cols.keys():
+            assert col in exp_cols, f"{card_key}: pad_col '{col}' not in expected_columns"
+        for col in card_cfg.sensitive_cols:
+            assert col in exp_cols, f"{card_key}: sensitive_col '{col}' not in expected_columns"
+        for col in card_cfg.key_cols:
+            assert col in exp_cols, f"{card_key}: key_col '{col}' not in expected_columns"
+
+        # mcc_col is a single valid column per card
+        assert isinstance(card_cfg.mcc_col, str)
+        assert card_cfg.mcc_col in exp_cols, f"{card_key}: mcc_col '{card_cfg.mcc_col}' not in expected_columns"
+        assert card_cfg.country_confidence in ("exact", "derived")
 @pytest.mark.parametrize("card_key", ["visa", "pinelabs", "vegapay"])
 def test_add_headers_correct_column_count_succeeds_per_card(card_key):
     """Verify that headerless synthetic files with exact expected column count succeed and map headers properly."""
@@ -98,20 +132,31 @@ def test_add_headers_drops_all_empty_rows():
     assert result["df"].index.tolist() == [0, 1, 2]
 
 
-# 5. Leading zeros preserved
+# 5. Leading zeros preserved & Column Addition export equals input
 def test_add_headers_preserves_leading_zeros():
-    """Verify leading zeros (e.g. '00000003', '012345') remain untouched as text."""
+    """Verify leading zeros remain untouched as text and Column Addition export equals input without padding."""
     col_count = len(VISA_EXPECTED_COLUMNS)
     row = ["val"] * col_count
     row[0] = "00000003"
     row[1] = "012345"
-    excel_bytes = create_in_memory_xlsx([row])
+    # Column spcati is a padded column in Analysis; in Column Addition it MUST NOT be padded
+    spcati_idx = VISA_EXPECTED_COLUMNS.index("spcati")
+    row[spcati_idx] = "3"
 
+    excel_bytes = create_in_memory_xlsx([row])
     result = add_headers(excel_bytes, "visa")
     assert result["ok"] is True
     df = result["df"]
     assert df.iloc[0, 0] == "00000003"
     assert df.iloc[0, 1] == "012345"
+    # PADDING MUST NOT ALTER COLUMN ADDITION EXPORT: '3' remains '3'
+    assert df["spcati"].iloc[0] == "3"
+
+    # Export round-trip check
+    out_xlsx = to_xlsx_bytes(df)
+    df_exported = read_excel_bytes(out_xlsx, header=0)
+    assert df_exported["spcati"].iloc[0] == "3"
+    assert df_exported.iloc[0, 0] == "00000003"
 
 
 # 6. Already-has-headers detected
@@ -284,25 +329,43 @@ def test_engine_parity_calamine_vs_openpyxl():
 
 # 13. Column padding test
 def test_column_padding_preserves_null_tokens():
-    """Verify pad_column and apply_column_padding pad short codes to width while preserving null tokens and blanks."""
+    """Verify pad_column and apply_column_padding pad digit-only short values, leaving alphanumerics untouched, preserving raw in _raw_<col>, and reporting counts."""
     # Unit pad_column checks
-    series = pd.Series(["3", "12345678", "-", "", None, "abc"])
-    padded = pad_column(series, width=8)
+    series = pd.Series(["3", "12345678", "-", "", None, "3A", "abc"])
+    padded, count = pad_column(series, width=8)
     assert padded.tolist()[:3] == ["00000003", "12345678", "-"]
     assert padded.iloc[3] == ""
     assert pd.isna(padded.iloc[4])
-    assert padded.iloc[5] == "abc"
+    # Alphanumeric short values untouched
+    assert padded.iloc[5] == "3A"
+    assert padded.iloc[6] == "abc"
+    # Only "3" was padded
+    assert count == 1
 
     # apply_column_padding with VISA config (spcati: 8, spdate: 8)
     df_visa = pd.DataFrame({
-        "spcati": ["1", "00000002", "-"],
-        "spdate": ["1012026", "01012026", ""],
-        "spdesc": ["3", "4", "5"],  # Not in pad_cols, remains unpadded
+        "spcati": ["1", "00000002", "-", "3A"],
+        "spdate": ["1012026", "01012026", "", "15102026"],
+        "spdesc": ["3", "4", "5", "6"],  # Not in pad_cols, remains unpadded
     })
-    df_padded = apply_column_padding(df_visa, "visa")
-    assert df_padded["spcati"].tolist() == ["00000001", "00000002", "-"]
-    assert df_padded["spdate"].tolist() == ["01012026", "01012026", ""]
-    assert df_padded["spdesc"].tolist() == ["3", "4", "5"]
+    df_padded, counts = apply_column_padding(df_visa, "visa")
+    # Padded values
+    assert df_padded["spcati"].tolist() == ["00000001", "00000002", "-", "3A"]
+    assert df_padded["spdate"].tolist() == ["01012026", "01012026", "", "15102026"]
+    assert df_padded["spdesc"].tolist() == ["3", "4", "5", "6"]
+    # Untouched originals preserved in hidden _raw_<col>
+    assert df_padded["_raw_spcati"].tolist() == ["1", "00000002", "-", "3A"]
+    assert df_padded["_raw_spdate"].tolist() == ["1012026", "01012026", "", "15102026"]
+    # Padded counts reported
+    assert counts["spcati"] == 1  # Only "1" was padded
+    assert counts["spdate"] == 1  # Only "1012026" was padded
+
+    # Check that apply_card_typing reports padded_counts and padding_notes
+    result = apply_card_typing(df_visa, "visa")
+    assert result["padded_counts"]["spcati"] == 1
+    assert "1 values zero-padded in spcati" in result["padding_notes"]
+    assert "_raw_spcati" not in [c["name"] for c in result["columns_info"]]
+    assert result["country_confidence"] == "derived"
 
 
 # 14. Null tokens handling test

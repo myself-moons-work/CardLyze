@@ -37,7 +37,14 @@ def apply_card_typing(
     - Tracks per-column parse warnings with structural shapes (no raw data leaked).
     """
     card_cfg = get_card_config(card)
-    typed_df = apply_column_padding(df.copy(), card_cfg)
+    # Apply column padding in the Analysis typing path only
+    # Preserves untouched originals in _raw_<col> and tracks counts
+    typed_df, padded_counts = apply_column_padding(df.copy(), card_cfg)
+    padding_notes = [
+        f"{count} values zero-padded in {col}"
+        for col, count in padded_counts.items()
+        if count > 0
+    ]
 
     # Track warnings and diagnostic reports
     warnings: Dict[str, Any] = {}
@@ -104,6 +111,8 @@ def apply_card_typing(
     columns_info: List[Dict[str, Any]] = []
 
     for col in typed_df.columns:
+        if col.startswith("_raw_"):
+            continue
         series = typed_df[col]
         null_count = int(series.isna().sum())
         null_pct = round((null_count / total_rows * 100), 2) if total_rows > 0 else 0.0
@@ -132,5 +141,8 @@ def apply_card_typing(
         "warnings": warnings,
         "date_ranges": date_ranges,
         "dob_quality_note": dob_quality_note,
+        "padded_counts": padded_counts,
+        "padding_notes": padding_notes,
+        "country_confidence": card_cfg.country_confidence,
     }
 

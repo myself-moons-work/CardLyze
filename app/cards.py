@@ -110,6 +110,7 @@ class CardConfig:
     sensitive_cols: List[str]
     key_cols: List[str]
     pad_cols: Dict[str, int] = field(default_factory=dict)
+    country_confidence: str = "derived"
 
 
 # --- VISA Card Configuration ---
@@ -241,7 +242,6 @@ VEGAPAY_KEY_COLS: List[str] = [
 
 VEGAPAY_PAD_COLS: Dict[str, int] = {
     "Terminal ID": 8,
-    "RRN": 12,
 }
 
 
@@ -257,6 +257,7 @@ CARDS: Dict[str, CardConfig] = {
         sensitive_cols=VISA_SENSITIVE_COLS,
         key_cols=VISA_KEY_COLS,
         pad_cols=VISA_PAD_COLS,
+        country_confidence="derived",
     ),
     "pinelabs": CardConfig(
         key="pinelabs",
@@ -269,6 +270,7 @@ CARDS: Dict[str, CardConfig] = {
         sensitive_cols=PINELABS_SENSITIVE_COLS,
         key_cols=PINELABS_KEY_COLS,
         pad_cols=PINELABS_PAD_COLS,
+        country_confidence="derived",
     ),
     "vegapay": CardConfig(
         key="vegapay",
@@ -281,6 +283,7 @@ CARDS: Dict[str, CardConfig] = {
         sensitive_cols=VEGAPAY_SENSITIVE_COLS,
         key_cols=VEGAPAY_KEY_COLS,
         pad_cols=VEGAPAY_PAD_COLS,
+        country_confidence="exact",
     ),
 }
 
@@ -302,40 +305,56 @@ def get_card_config(card: Union[str, CardConfig, Dict[str, Any]]) -> CardConfig:
 
 # --- Column Padding for Lost Leading Zeros ---
 
-def pad_column(series: pd.Series, width: int) -> pd.Series:
-    """Left-pad numeric strings with leading zeros to width.
-    Preserves NULL_TOKENS, blanks, and non-digits as-is.
+def pad_column(series: pd.Series, width: int) -> tuple[pd.Series, int]:
+    """Left-pad digit-only strings with leading zeros to width.
+    Preserves NULL_TOKENS, blanks, non-digits, and alphanumeric values as-is.
+    Returns (padded_series, count_of_padded_values).
     """
     if not isinstance(series, pd.Series):
         series = pd.Series(series)
 
+    padded_count = 0
+
     def _pad(val: Any) -> Any:
+        nonlocal padded_count
         if val is None or pd.isna(val):
             return val
         s = str(val).strip()
         if s in NULL_TOKENS or not s:
             return s
+        # (a) Pad only values that are entirely digits and shorter than width;
+        # leave alphanumeric values alone (e.g. '3A' stays '3A')
         if s.isdigit() and len(s) < width:
+            padded_count += 1
             return s.zfill(width)
         return s
 
-    return series.apply(_pad)
+    out = series.apply(_pad)
+    return out, padded_count
 
 
 def apply_column_padding(
     df: pd.DataFrame,
     card: Union[str, CardConfig, Dict[str, Any]],
-) -> pd.DataFrame:
-    """Apply configured leading-zero padding to relevant columns in DataFrame."""
+) -> tuple[pd.DataFrame, Dict[str, int]]:
+    """Apply configured leading-zero padding to digit-only values in relevant columns.
+    Returns (padded_df, padded_counts_dict).
+    Stores original untouched values in hidden `_raw_<col>` columns so nothing is lost.
+    """
     card_cfg = get_card_config(card)
+    padded_counts: Dict[str, int] = {}
     if not card_cfg.pad_cols:
-        return df
+        return df.copy(), padded_counts
 
     out_df = df.copy()
     for col, width in card_cfg.pad_cols.items():
         if col in out_df.columns:
-            out_df[col] = pad_column(out_df[col], width)
-    return out_df
+            # Keep original untouched value available
+            out_df[f"_raw_{col}"] = out_df[col]
+            padded_col, count = pad_column(out_df[col], width)
+            out_df[col] = padded_col
+            padded_counts[col] = count
+    return out_df, padded_counts
 
 
 # --- Country Code Derivation ---

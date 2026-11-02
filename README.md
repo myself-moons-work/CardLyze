@@ -15,6 +15,7 @@ CardLyze is a secure, privacy-first internal web tool for processing, standardiz
 ## Installation & Setup
 
 Requirements: Python 3.11+
+Required Dependencies: `python-calamine` (primary in-memory Excel engine for high performance and minimal memory usage; `openpyxl` is retained as an explicit fallback).
 
 ```bash
 # Clone the repository

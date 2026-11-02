@@ -1,15 +1,19 @@
 """In-memory Excel workbook processing and schema header mapping."""
 
 import io
+import logging
 from typing import Any, Dict, Optional, Union
 import pandas as pd
 
-from app.cards import CardConfig, apply_column_padding, get_card_config
+from app.cards import CardConfig, get_card_config
+
+logger = logging.getLogger(__name__)
 
 
 def read_excel_bytes(data: bytes, header: Any = 0) -> pd.DataFrame:
     """Read an Excel file from bytes purely in memory using calamine if available, falling back to openpyxl.
 
+    Logs a data-free warning if falling back to openpyxl.
     All cell contents are loaded with dtype=str to preserve leading zeros, exact IDs, and codes.
     Never writes to disk.
     """
@@ -17,9 +21,15 @@ def read_excel_bytes(data: bytes, header: Any = 0) -> pd.DataFrame:
     try:
         import python_calamine  # noqa: F401
         return pd.read_excel(buffer, header=header, dtype=str, engine="calamine")
-    except Exception:
+    except Exception as err:
+        logger.warning(
+            "Calamine engine unavailable or failed to parse workbook (%s); falling back to openpyxl. Performance will be degraded.",
+            type(err).__name__,
+        )
         buffer.seek(0)
-        return pd.read_excel(buffer, header=header, dtype=str, engine="openpyxl")
+        df = pd.read_excel(buffer, header=header, dtype=str, engine="openpyxl")
+        df.attrs["engine_fallback"] = True
+        return df
 
 
 def add_headers(
@@ -34,6 +44,7 @@ def add_headers(
     3. Detect if the first row already equals the expected column names (already has headers).
     4. Validate column count against card schema expected_columns.
     5. Return structured result dict: ok flag, DataFrame (only if ok), row count, column counts, and human message.
+    NOTE: In Column Addition, values are NEVER altered or padded. Exported values equal input values exactly.
     """
     card_cfg = get_card_config(card)
     expected_columns = list(card_cfg.expected_columns)
@@ -97,9 +108,13 @@ def add_headers(
             ),
         }
 
-    # Assign column headers and apply configured column padding
+    # Assign column headers (PADDING MUST NOT ALTER COLUMN ADDITION EXPORT)
     df.columns = expected_columns
-    df = apply_column_padding(df, card_cfg)
+
+    fallback_used = df.attrs.get("engine_fallback", False)
+    msg = f"Successfully mapped {expected_count} columns for {card_cfg.label}."
+    if fallback_used:
+        msg += " (Warning: File loaded using fallback engine openpyxl; loading was slow.)"
 
     return {
         "ok": True,
@@ -107,7 +122,8 @@ def add_headers(
         "rows": rows,
         "found_columns": found_columns,
         "expected_columns": expected_count,
-        "message": f"Successfully mapped {expected_count} columns for {card_cfg.label}.",
+        "message": msg,
+        "used_fallback_engine": fallback_used,
     }
 
 
