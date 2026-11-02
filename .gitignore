@@ -2,4 +2,9 @@
 /data_with_headers
 /data_dictionary
 .venv/
-
+__pycache__/
+.pytest_cache/
+*.py[cod]
+diagnostic*.py
+test_real*.py
+scratch/
