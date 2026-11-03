@@ -1,6 +1,7 @@
 """CardLyze FastAPI application entry point."""
 
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
@@ -14,10 +15,33 @@ from app.security import SecurityHeadersMiddleware
 from app.services.concurrency import run_parse_task
 from app.store import session_store
 
+logger = logging.getLogger(__name__)
+
+
+def check_host_binding():
+    """Verify application is running on loopback interface unless explicitly allowed."""
+    host = settings.HOST.strip().lower()
+    is_loopback = host in ("127.0.0.1", "localhost", "::1") or host.startswith("127.")
+    if not is_loopback:
+        if not settings.ALLOW_NON_LOOPBACK:
+            raise RuntimeError(
+                f"Refusing to start on non-loopback host '{settings.HOST}'. "
+                "CardLyze is designed as a local single-user application bound to 127.0.0.1. "
+                "Set ALLOW_NON_LOOPBACK=1 to override."
+            )
+        else:
+            logger.warning(
+                "WARNING: CardLyze is running on non-loopback host '%s'. "
+                "This exposes transaction data across the network without encryption or user authentication!",
+                settings.HOST,
+            )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Background task lifecycle manager for session cleanup."""
+    """Background task lifecycle manager for session cleanup and host verification."""
+    check_host_binding()
+
     stop_event = asyncio.Event()
 
     async def sweeper_loop():

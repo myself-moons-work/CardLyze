@@ -1,3 +1,5 @@
+import csv
+import json
 import io
 import os
 import socket
@@ -285,9 +287,28 @@ def test_column_addition_e2e_workflow(
     page.locator(".dt-btn-density").click()
     assert "dt-compact" not in (table_el.get_attribute("class") or "")
 
-    # 10. Download Excel test
+    # 10a. Download CSV (Fast Path) test
+    assert page.locator("#csv-export-note").is_visible()
+    with page.expect_download() as csv_download_info:
+        page.locator("#btn-download-csv").click()
+    csv_download = csv_download_info.value
+    csv_tmp = csv_download.path()
+    assert csv_tmp is not None
+    with open(csv_tmp, "rb") as f:
+        downloaded_csv_bytes = f.read()
+
+    # Verify BOM, row count, column count, and plain text
+    assert downloaded_csv_bytes.startswith(b"\xef\xbb\xbf")
+    csv_rows = list(csv.reader(io.StringIO(downloaded_csv_bytes.decode("utf-8-sig")), lineterminator="\r\n"))
+    assert len(csv_rows) == 56  # 1 header + 55 data rows
+    assert len(csv_rows[0]) == expected_cols
+    assert csv_rows[1][0] == "00000003"
+    assert csv_rows[1][1] == "=1+1"
+
+    # 10b. Download Excel test
+    assert not page.locator("#excel-large-note").is_visible()
     with page.expect_download() as download_info:
-        page.locator("#btn-download").click()
+        page.locator("#btn-download-excel").click()
     download = download_info.value
     download_tmp = download.path()
     assert download_tmp is not None
@@ -406,7 +427,7 @@ def test_column_addition_errors_and_session_expiry(
     session_store.clear_all()
 
     # Now attempt to download
-    page.locator("#btn-download").click()
+    page.locator("#btn-download-csv").click()
 
     # Verify session expired message is displayed in error banner
     page.wait_for_selector("#banner-error", state="visible")
@@ -507,5 +528,64 @@ def test_xss_prevention_in_dom(
     # 6. Assert no CSP violations
     csp_violations = page.evaluate("() => window.__cspViolations || []")
     assert len(csp_violations) == 0, f"CSP violation fired: {csp_violations}"
+
+    context.close()
+
+
+@pytest.mark.e2e
+def test_large_file_excel_warning_in_ui(
+    app_server: str,
+    browser_instance: Browser,
+):
+    """Test that files with > 60,000 rows display the Excel warning notice in the UI."""
+    session_store.clear_all()
+    context = browser_instance.new_context(viewport={"width": 1280, "height": 800})
+    page = context.new_page()
+
+    # Intercept upload response to return rows: 65,000
+    def handle_upload(route):
+        route.fulfill(
+            status=200,
+            content_type="application/json",
+            body=json.dumps({
+                "ok": True,
+                "rows": 65000,
+                "columns": ["col1", "col2"],
+                "column_count": 2,
+                "card_key": "visa",
+                "is_large_file": True,
+                "preview": {
+                    "page": 1,
+                    "page_size": 25,
+                    "total_rows": 65000,
+                    "total_pages": 2600,
+                    "columns": ["col1", "col2"],
+                    "rows": [{"col1": "a", "col2": "b"}],
+                },
+            }),
+        )
+
+    page.route("**/api/column-addition/*/upload", handle_upload)
+    page.goto(f"{app_server}/column-addition.html")
+    page.wait_for_load_state("domcontentloaded")
+
+    # Select VISA and upload small file
+    page.locator('.card-option[data-card="visa"]').click()
+    raw_bytes = make_synthetic_raw_xlsx(num_cols=29, num_rows=5)
+    page.set_input_files(
+        "#file-input",
+        {
+            "name": "visa_sample.xlsx",
+            "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "buffer": raw_bytes,
+        },
+    )
+    page.locator("#btn-process").click()
+    page.wait_for_selector("#banner-success", state="visible")
+
+    # Verify #excel-large-note is visible
+    large_note = page.locator("#excel-large-note")
+    assert large_note.is_visible()
+    assert "Excel export can take several minutes" in large_note.text_content()
 
     context.close()
