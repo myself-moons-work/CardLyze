@@ -118,7 +118,12 @@ def apply_card_typing(
     }
 
     # 5. Derive normalized mcc_code and mcc_description
-    typed_df["mcc_code"], typed_df["mcc_description"] = derive_mcc(typed_df, card_cfg)
+    typed_df["mcc_code"], typed_df["mcc_description"], mcc_pad_count = derive_mcc(
+        typed_df, card_cfg, return_pad_count=True
+    )
+    if mcc_pad_count > 0:
+        padded_counts["mcc_code"] = mcc_pad_count
+        padding_notes.append(f"{mcc_pad_count} values zero-padded in mcc_code")
 
     # 6. Informational data quality check for Vegapay RRN (count only, values unchanged)
     rrn_quality_note = None

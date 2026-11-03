@@ -67,11 +67,18 @@ def test_cards_config_sanity_and_literal_counts():
             assert col in exp_cols, f"{card_key}: sensitive_col '{col}' not in expected_columns"
         for col in card_cfg.key_cols:
             assert col in exp_cols, f"{card_key}: key_col '{col}' not in expected_columns"
-
         # mcc_col is a single valid column per card
         assert isinstance(card_cfg.mcc_col, str)
         assert card_cfg.mcc_col in exp_cols, f"{card_key}: mcc_col '{card_cfg.mcc_col}' not in expected_columns"
         assert card_cfg.country_confidence in ("exact", "derived")
+
+    # Country formats and MCC padding config checks
+    assert CARDS["visa"].country_formats == ["alpha2"]
+    assert CARDS["vegapay"].country_formats == ["alpha2", "alpha3"]
+    assert CARDS["pinelabs"].country_formats == ["alpha3"]
+    assert CARDS["pinelabs"].pad_mcc_to_4 is True
+    assert CARDS["visa"].pad_mcc_to_4 is False
+    assert CARDS["vegapay"].pad_mcc_to_4 is False
 @pytest.mark.parametrize("card_key", ["visa", "pinelabs", "vegapay"])
 def test_add_headers_correct_column_count_succeeds_per_card(card_key):
     """Verify that headerless synthetic files with exact expected column count succeed and map headers properly."""
@@ -201,15 +208,16 @@ def test_derive_country_iso_per_card():
     })
     assert derive_country(df_visa, "visa").tolist() == ["GB", "AE", "Unknown"]
 
-    # PineLabs: last 2-letter uppercase ISO token of Merchant Name & Location
+    # PineLabs: last uppercase alpha-3 ISO token of Merchant Name & Location normalized to alpha-2
     df_pine = pd.DataFrame({
         "Merchant Name & Location": [
-            "STARBUCKS MUMBAI IN 400001",
-            "CAFE COFFEE DAY IN",
+            "STARBUCKS MUMBAI IND",
+            "COFFEE SHOP LONDON GBR",
+            "CAFE COFFEE DAY IN",       # 2 letters -> Unknown (PineLabs checks alpha-3 only)
             "COFFEE SHOP BANGALORE IND",
         ]
     })
-    assert derive_country(df_pine, "pinelabs").tolist() == ["IN", "IN", "Unknown"]
+    assert derive_country(df_pine, "pinelabs").tolist() == ["IN", "GB", "Unknown", "IN"]
 
     # Vegapay: Merchant Country (accepts alpha-2, alpha-3, and common full names)
     df_vega = pd.DataFrame({
@@ -296,17 +304,26 @@ def test_country_code_edge_cases():
     assert validate_iso_country(None) == "Unknown"
     assert validate_iso_country("-") == "Unknown"
 
-    # 6. PineLabs words: 'IN' (India) and 'TO' (Tonga)
-    df_pinelabs_words = pd.DataFrame({
+    # 6. PineLabs alpha-3 derivation:
+    # "<CITY> GBR" gives GB, "USA" gives US, lowercase gives Unknown,
+    # fee-like text such as "AAA MARKUP" gives Unknown, trailing postal gives Unknown, empty gives Unknown
+    # NOTE on False Positives:
+    # Real words that are valid alpha-3 codes (AND, ARE, CAN, COM, MAR, DOM, PER, SEN) can cause false positives,
+    # which currency cross-checks are meant to catch.
+    df_pinelabs_edges = pd.DataFrame({
         "Merchant Name & Location": [
-            "STARBUCKS MUMBAI IN 400001",     # Trailing 'IN' before postal code -> 'IN'
-            "COFFEE SHOP BANGALORE IN",       # Direct trailing 'IN' -> 'IN'
-            "STORE NAME TO",                  # Ends with 'TO' -> 'TO' (Tonga)
-            "WELCOME TO CAFE MUMBAI",         # 'TO' is internal, city at end -> 'Unknown'
+            "BEACONSFIELD GBR",               # "<CITY> GBR" -> GB
+            "USA",                            # "USA" -> US
+            "london gbr",                     # lowercase -> Unknown
+            "AAA MARKUP",                     # fee-like text -> Unknown
+            "BEACONSFIELD GBR 12345",         # trailing postal code -> Unknown
+            "",                               # empty -> Unknown
+            "   ",                            # whitespace -> Unknown
+            None,                             # None -> Unknown
         ]
     })
-    res = derive_country(df_pinelabs_words, "pinelabs")
-    assert res.tolist() == ["IN", "IN", "TO", "Unknown"]
+    res = derive_country(df_pinelabs_edges, "pinelabs")
+    assert res.tolist() == ["GB", "US", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown", "Unknown"]
 
 
 # 12. Engine parity test
@@ -455,19 +472,27 @@ def test_mcc_normalization_synthetic_all_cards():
     """Verify MCC normalization parses code & description for PineLabs, Vegapay, and VISA, preserving leading zeros."""
     from app.cards import derive_mcc, format_mcc_display
 
-    # 1. PineLabs split: '<4 digits>-<description>'
+    # 1. PineLabs split: '<digits>-<description>' with pad_mcc_to_4=True
     df_pine = pd.DataFrame({
         "mcc": [
             "0742-VETERINARY SERVICES",
             "5411 - GROCERY STORES",
+            "742-PET SHOPS",
+            "3 - TAXI",
             "-",
             "INVALID_MCC",
             None,
         ]
     })
-    code_s, desc_s = derive_mcc(df_pine, "pinelabs")
-    assert code_s.tolist() == ["0742", "5411", "", "", ""]
-    assert desc_s.tolist() == ["VETERINARY SERVICES", "GROCERY STORES", "", "", ""]
+    code_s, desc_s, pad_cnt = derive_mcc(df_pine, "pinelabs", return_pad_count=True)
+    assert code_s.tolist() == ["0742", "5411", "0742", "0003", "", "", ""]
+    assert desc_s.tolist() == ["VETERINARY SERVICES", "GROCERY STORES", "PET SHOPS", "TAXI", "", "", ""]
+    assert pad_cnt == 2  # '742' and '3' padded
+
+    # Check typing upload summary integration for mcc_code padding
+    res_pine_typing = apply_card_typing(df_pine, "pinelabs")
+    assert res_pine_typing["padded_counts"].get("mcc_code") == 2
+    assert "2 values zero-padded in mcc_code" in res_pine_typing["padding_notes"]
 
     # 2. Vegapay: MCC and MCC Description
     df_vega = pd.DataFrame({

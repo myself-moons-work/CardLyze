@@ -35,16 +35,50 @@ ISO_3166_1_ALPHA2: frozenset[str] = frozenset({
     "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "ZW"
 })
 
-# Standard ISO 3166-1 alpha-3 to alpha-2 mappings (used for Vegapay and multi-source normalization)
+# Complete ISO 3166-1 alpha-3 to alpha-2 mappings (249 officially assigned codes)
 ISO_3166_1_ALPHA3_TO_ALPHA2: Dict[str, str] = {
-    "IND": "IN", "USA": "US", "GBR": "GB", "ARE": "AE", "SGP": "SG", "CAN": "CA",
-    "AUS": "AU", "DEU": "DE", "FRA": "FR", "NLD": "NL", "IRL": "IE", "JPN": "JP",
-    "HKG": "HK", "MYS": "MY", "THA": "TH", "IDN": "ID", "PHL": "PH", "VNM": "VN",
-    "NZL": "NZ", "ZAF": "ZA", "BRA": "BR", "MEX": "MX", "ESP": "ES", "ITA": "IT",
-    "CHE": "CH", "SWE": "SE", "NOR": "NO", "DNK": "DK", "FIN": "FI", "POL": "PL",
-    "AUT": "AT", "BEL": "BE", "PRT": "PT", "GRC": "GR", "TUR": "TR", "ISR": "IL",
-    "SAU": "SA", "QAT": "QA", "KWT": "KW", "BHR": "BH", "OMN": "OM", "EGY": "EG",
-    "GEO": "GE", "BWA": "BW", "KOR": "KR", "TWN": "TW", "CHN": "CN", "RUS": "RU",
+    "ABW": "AW", "AFG": "AF", "AGO": "AO", "AIA": "AI", "ALA": "AX", "ALB": "AL",
+    "AND": "AD", "ARE": "AE", "ARG": "AR", "ARM": "AM", "ASM": "AS", "ATA": "AQ",
+    "ATF": "TF", "ATG": "AG", "AUS": "AU", "AUT": "AT", "AZE": "AZ", "BDI": "BI",
+    "BEL": "BE", "BEN": "BJ", "BES": "BQ", "BFA": "BF", "BGD": "BD", "BGR": "BG",
+    "BHR": "BH", "BHS": "BS", "BIH": "BA", "BLM": "BL", "BLR": "BY", "BLZ": "BZ",
+    "BMU": "BM", "BOL": "BO", "BRA": "BR", "BRB": "BB", "BRN": "BN", "BTN": "BT",
+    "BVT": "BV", "BWA": "BW", "CAF": "CF", "CAN": "CA", "CCK": "CC", "CHE": "CH",
+    "CHL": "CL", "CHN": "CN", "CIV": "CI", "CMR": "CM", "COD": "CD", "COG": "CG",
+    "COK": "CK", "COL": "CO", "COM": "KM", "CPV": "CV", "CRI": "CR", "CUB": "CU",
+    "CUW": "CW", "CXR": "CX", "CYM": "KY", "CYP": "CY", "CZE": "CZ", "DEU": "DE",
+    "DJI": "DJ", "DMA": "DM", "DNK": "DK", "DOM": "DO", "DZA": "DZ", "ECU": "EC",
+    "EGY": "EG", "ERI": "ER", "ESH": "EH", "ESP": "ES", "EST": "EE", "ETH": "ET",
+    "FIN": "FI", "FJI": "FJ", "FLK": "FK", "FRA": "FR", "FRO": "FO", "FSM": "FM",
+    "GAB": "GA", "GBR": "GB", "GEO": "GE", "GGY": "GG", "GHA": "GH", "GIB": "GI",
+    "GIN": "GN", "GLP": "GP", "GMB": "GM", "GNB": "GW", "GNQ": "GQ", "GRC": "GR",
+    "GRD": "GD", "GRL": "GL", "GTM": "GT", "GUF": "GF", "GUM": "GU", "GUY": "GY",
+    "HKG": "HK", "HMD": "HM", "HND": "HN", "HRV": "HR", "HTI": "HT", "HUN": "HU",
+    "IDN": "ID", "IMN": "IM", "IND": "IN", "IOT": "IO", "IRL": "IE", "IRN": "IR",
+    "IRQ": "IQ", "ISL": "IS", "ISR": "IL", "ITA": "IT", "JAM": "JM", "JEY": "JE",
+    "JOR": "JO", "JPN": "JP", "KAZ": "KZ", "KEN": "KE", "KGZ": "KG", "KHM": "KH",
+    "KIR": "KI", "KNA": "KN", "KOR": "KR", "KWT": "KW", "LAO": "LA", "LBN": "LB",
+    "LBR": "LR", "LBY": "LY", "LCA": "LC", "LIE": "LI", "LKA": "LK", "LSO": "LS",
+    "LTU": "LT", "LUX": "LU", "LVA": "LV", "MAC": "MO", "MAF": "MF", "MAR": "MA",
+    "MCO": "MC", "MDA": "MD", "MDG": "MG", "MDV": "MV", "MEX": "MX", "MHL": "MH",
+    "MKD": "MK", "MLI": "ML", "MLT": "MT", "MMR": "MM", "MNE": "ME", "MNG": "MN",
+    "MNP": "MP", "MOZ": "MZ", "MRT": "MR", "MSR": "MS", "MTQ": "MQ", "MUS": "MU",
+    "MWI": "MW", "MYS": "MY", "MYT": "YT", "NAM": "NA", "NCL": "NC", "NER": "NE",
+    "NFK": "NF", "NGA": "NG", "NIC": "NI", "NIU": "NU", "NLD": "NL", "NOR": "NO",
+    "NPL": "NP", "NRU": "NR", "NZL": "NZ", "OMN": "OM", "PAK": "PK", "PAN": "PA",
+    "PCN": "PN", "PER": "PE", "PHL": "PH", "PLW": "PW", "PNG": "PG", "POL": "PL",
+    "PRI": "PR", "PRK": "KP", "PRT": "PT", "PRY": "PY", "PSE": "PS", "PYF": "PF",
+    "QAT": "QA", "REU": "RE", "ROU": "RO", "RUS": "RU", "RWA": "RW", "SAU": "SA",
+    "SDN": "SD", "SEN": "SN", "SGP": "SG", "SGS": "GS", "SHN": "SH", "SJM": "SJ",
+    "SLB": "SB", "SLE": "SL", "SLV": "SV", "SMR": "SM", "SOM": "SO", "SPM": "PM",
+    "SRB": "RS", "SSD": "SS", "STP": "ST", "SUR": "SR", "SVK": "SK", "SVN": "SI",
+    "SWE": "SE", "SWZ": "SZ", "SXM": "SX", "SYC": "SC", "SYR": "SY", "TCA": "TC",
+    "TCD": "TD", "TGO": "TG", "THA": "TH", "TJK": "TJ", "TKL": "TK", "TKM": "TM",
+    "TLS": "TL", "TON": "TO", "TTO": "TT", "TUN": "TN", "TUR": "TR", "TUV": "TV",
+    "TWN": "TW", "TZA": "TZ", "UGA": "UG", "UKR": "UA", "UMI": "UM", "URY": "UY",
+    "USA": "US", "UZB": "UZ", "VAT": "VA", "VCT": "VC", "VEN": "VE", "VGB": "VG",
+    "VIR": "VI", "VNM": "VN", "VUT": "VU", "WLF": "WF", "WSM": "WS", "YEM": "YE",
+    "ZAF": "ZA", "ZMB": "ZM", "ZWE": "ZW",
 }
 
 # Common full country name mapping fallback
@@ -111,6 +145,7 @@ class CardConfig:
     key_cols: List[str]
     pad_cols: Dict[str, int] = field(default_factory=dict)
     country_confidence: str = "derived"
+    country_formats: List[str] = field(default_factory=lambda: ["alpha2"])
     pad_mcc_to_4: bool = False
 
 
@@ -259,6 +294,7 @@ CARDS: Dict[str, CardConfig] = {
         key_cols=VISA_KEY_COLS,
         pad_cols=VISA_PAD_COLS,
         country_confidence="derived",
+        country_formats=["alpha2"],
     ),
     "pinelabs": CardConfig(
         key="pinelabs",
@@ -272,6 +308,8 @@ CARDS: Dict[str, CardConfig] = {
         key_cols=PINELABS_KEY_COLS,
         pad_cols=PINELABS_PAD_COLS,
         country_confidence="derived",
+        country_formats=["alpha3"],
+        pad_mcc_to_4=True,
     ),
     "vegapay": CardConfig(
         key="vegapay",
@@ -285,6 +323,7 @@ CARDS: Dict[str, CardConfig] = {
         key_cols=VEGAPAY_KEY_COLS,
         pad_cols=VEGAPAY_PAD_COLS,
         country_confidence="exact",
+        country_formats=["alpha2", "alpha3"],
     ),
 }
 
@@ -425,24 +464,27 @@ def derive_country(df: pd.DataFrame, card: Union[str, CardConfig, Dict[str, Any]
         col = "Merchant Name & Location"
         if col in df.columns:
             def _extract_pinelabs(val: Any) -> str:
+                """PineLabs country derivation: checks LAST whitespace token only.
+                Must be uppercase, 3 letters, and present in ISO_3166_1_ALPHA3_TO_ALPHA2.
+                Normalizes to 2-letter ISO code, otherwise returns 'Unknown'.
+                Does not use alpha-2 to avoid US state code collisions (e.g. CA, ME, VA, IL).
+
+                NOTE on False Positives:
+                Real words that are valid ISO alpha-3 codes (AND, ARE, CAN, COM, MAR, DOM, PER, SEN)
+                can cause false positives when appearing as the trailing token of merchant names.
+                The Transaction Currency cross-check is meant to catch and verify these cases.
+                """
                 if val is None or pd.isna(val):
                     return "Unknown"
-                tokens = str(val).strip().split()
+                text = str(val).strip()
+                if not text or text in NULL_TOKENS:
+                    return "Unknown"
+                tokens = text.split()
                 if not tokens:
                     return "Unknown"
-                # Check trailing token first
                 last_tok = tokens[-1].strip(".,;:/-()[]{}'\"")
-                if len(last_tok) == 2 and last_tok.isalpha() and last_tok.isupper():
-                    c = validate_iso_country(last_tok, allow_alpha3=False)
-                    if c != "Unknown":
-                        return c
-                # If trailing token is numeric/postal code, check the preceding token
-                if len(tokens) >= 2 and (last_tok.isdigit() or not last_tok.isalpha()):
-                    prev_tok = tokens[-2].strip(".,;:/-()[]{}'\"")
-                    if len(prev_tok) == 2 and prev_tok.isalpha() and prev_tok.isupper():
-                        c = validate_iso_country(prev_tok, allow_alpha3=False)
-                        if c != "Unknown":
-                            return c
+                if len(last_tok) == 3 and last_tok.isupper() and last_tok in ISO_3166_1_ALPHA3_TO_ALPHA2:
+                    return ISO_3166_1_ALPHA3_TO_ALPHA2[last_tok]
                 return "Unknown"
 
             res = df[col].apply(_extract_pinelabs)
@@ -461,23 +503,29 @@ def derive_country(df: pd.DataFrame, card: Union[str, CardConfig, Dict[str, Any]
 def derive_mcc(
     df: pd.DataFrame,
     card: Union[str, CardConfig, Dict[str, Any]],
-) -> tuple[pd.Series, pd.Series]:
+    return_pad_count: bool = False,
+) -> Union[tuple[pd.Series, pd.Series], tuple[pd.Series, pd.Series, int]]:
     """Derive normalized `mcc_code` and `mcc_description` columns for the Analysis path.
     
     Rules:
-    - PineLabs: 'mcc' holds '<4 digits>-<description>' in one string.
-      Parses the leading 4 digits into mcc_code and remainder into mcc_description.
+    - PineLabs: 'mcc' holds '<digits>-<description>' in one string.
+      Parses leading 1-4 digits into mcc_code and remainder into mcc_description.
       Placeholders (e.g. '-') or non-matches become empty strings.
     - Vegapay: 'MCC' is mcc_code, 'MCC Description' is mcc_description.
     - VISA: 'spmcat' is mcc_code, mcc_description is empty string.
     - Optional zero-padding to 4 digits (digit-only) applied if card_cfg.pad_mcc_to_4 is True.
+      Returns (s_code, s_desc, pad_count) when return_pad_count=True.
     """
     card_cfg = get_card_config(card)
     card_key = card_cfg.key
     total_len = len(df)
 
     if total_len == 0:
-        return pd.Series(dtype="object"), pd.Series(dtype="object")
+        empty_code = pd.Series(dtype="object")
+        empty_desc = pd.Series(dtype="object")
+        if return_pad_count:
+            return empty_code, empty_desc, 0
+        return empty_code, empty_desc
 
     mcc_code_list = []
     mcc_desc_list = []
@@ -491,8 +539,8 @@ def derive_mcc(
                 mcc_desc_list.append("")
                 continue
             s = str(val).strip()
-            # Match leading 4 digits, optional delimiter and remainder description
-            match = re.match(r"^(\d{4})(?:\s*-\s*|\s+|-)?(.*)$", s)
+            # Match leading 1-4 digits, optional delimiter and remainder description
+            match = re.match(r"^(\d{1,4})(?:\s*-\s*|\s+|-)?(.*)$", s)
             if match:
                 code = match.group(1)
                 desc = match.group(2).strip()
@@ -527,15 +575,22 @@ def derive_mcc(
         mcc_code_list = [""] * total_len
         mcc_desc_list = [""] * total_len
 
-    # Optional zero-padding to 4 digits (defaults OFF)
+    # Optional zero-padding to 4 digits (defaults OFF, ON for PineLabs)
+    pad_count = 0
     if card_cfg.pad_mcc_to_4:
-        mcc_code_list = [
-            c.zfill(4) if c.isdigit() and len(c) < 4 else c
-            for c in mcc_code_list
-        ]
+        new_mcc_code_list = []
+        for c in mcc_code_list:
+            if c.isdigit() and len(c) < 4:
+                new_mcc_code_list.append(c.zfill(4))
+                pad_count += 1
+            else:
+                new_mcc_code_list.append(c)
+        mcc_code_list = new_mcc_code_list
 
     s_code = pd.Series(mcc_code_list, index=df.index, name="mcc_code")
     s_desc = pd.Series(mcc_desc_list, index=df.index, name="mcc_description")
+    if return_pad_count:
+        return s_code, s_desc, pad_count
     return s_code, s_desc
 
 
