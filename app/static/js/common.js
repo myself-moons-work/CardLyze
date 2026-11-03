@@ -139,6 +139,39 @@
     });
 
     /**
+     * Show indeterminate loading state with file name while parsing in background.
+     * Uses textContent exclusively to prevent any script/HTML injection.
+     */
+    function showLoadingState(container, fileName) {
+        if (!container) return;
+        container.replaceChildren();
+
+        const overlay = document.createElement('div');
+        overlay.className = 'loading-overlay';
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'loading-file-name';
+        nameEl.textContent = `Processing: ${fileName}`;
+        overlay.appendChild(nameEl);
+
+        const progress = document.createElement('div');
+        progress.className = 'progress-bar-indeterminate';
+        overlay.appendChild(progress);
+
+        const status = document.createElement('div');
+        status.className = 'loading-status-text';
+        status.textContent = 'Parsing and validating transaction data...';
+        overlay.appendChild(status);
+
+        container.appendChild(overlay);
+    }
+
+    function hideLoadingState(container) {
+        if (!container) return;
+        container.replaceChildren();
+    }
+
+    /**
      * Escape HTML string safely.
      */
     function escapeHtml(str) {
@@ -170,7 +203,7 @@
      * - Column picker with live search, Select all, Clear, Key columns shortcuts
      * - Density toggle (Compact / Comfortable)
      * - Row detail side drawer with Copy All
-     * - Fully CSP-compliant (0 inline styles, 0 inline scripts, 0 eval)
+     * - Fully CSP-compliant (0 inline styles, 0 inline scripts, 0 eval, 0 innerHTML)
      */
     class DataTable {
         constructor(container, options = {}) {
@@ -222,7 +255,17 @@
             this.densityBtn.type = 'button';
             this.densityBtn.className = 'btn btn-outline btn-sm dt-btn-density';
             this.densityBtn.setAttribute('aria-label', 'Toggle row density');
-            this.densityBtn.innerHTML = '<span class="dt-icon">↕</span> <span class="dt-density-label">Compact</span>';
+
+            const densityIcon = document.createElement('span');
+            densityIcon.className = 'dt-icon';
+            densityIcon.textContent = '↕';
+            this.densityBtn.appendChild(densityIcon);
+            this.densityBtn.appendChild(document.createTextNode(' '));
+
+            const densityLabel = document.createElement('span');
+            densityLabel.className = 'dt-density-label';
+            densityLabel.textContent = 'Compact';
+            this.densityBtn.appendChild(densityLabel);
             leftActions.appendChild(this.densityBtn);
 
             // Column Picker Container
@@ -234,7 +277,24 @@
             this.colPickerBtn.className = 'btn btn-outline btn-sm dt-btn-col-picker';
             this.colPickerBtn.setAttribute('aria-expanded', 'false');
             this.colPickerBtn.setAttribute('aria-haspopup', 'true');
-            this.colPickerBtn.innerHTML = '<span class="dt-icon">⚙</span> <span class="dt-col-picker-label">Columns</span> <span class="dt-caret">▼</span>';
+
+            const pickerIcon = document.createElement('span');
+            pickerIcon.className = 'dt-icon';
+            pickerIcon.textContent = '⚙';
+            this.colPickerBtn.appendChild(pickerIcon);
+            this.colPickerBtn.appendChild(document.createTextNode(' '));
+
+            const pickerLabel = document.createElement('span');
+            pickerLabel.className = 'dt-col-picker-label';
+            pickerLabel.textContent = 'Columns';
+            this.colPickerBtn.appendChild(pickerLabel);
+            this.colPickerBtn.appendChild(document.createTextNode(' '));
+
+            const pickerCaret = document.createElement('span');
+            pickerCaret.className = 'dt-caret';
+            pickerCaret.textContent = '▼';
+            this.colPickerBtn.appendChild(pickerCaret);
+
             this.colPickerContainer.appendChild(this.colPickerBtn);
 
             // Column Picker Dropdown Menu
@@ -312,9 +372,17 @@
             // Loading overlay inside scroll container
             this.tableLoaderEl = document.createElement('div');
             this.tableLoaderEl.className = 'dt-table-loader hidden';
-            this.tableLoaderEl.innerHTML = '<div class="progress-bar-indeterminate"></div><div class="dt-loader-text">Loading rows...</div>';
-            this.scrollContainerEl.appendChild(this.tableLoaderEl);
 
+            const loaderBar = document.createElement('div');
+            loaderBar.className = 'progress-bar-indeterminate';
+            this.tableLoaderEl.appendChild(loaderBar);
+
+            const loaderText = document.createElement('div');
+            loaderText.className = 'dt-loader-text';
+            loaderText.textContent = 'Loading rows...';
+            this.tableLoaderEl.appendChild(loaderText);
+
+            this.scrollContainerEl.appendChild(this.tableLoaderEl);
             this.container.appendChild(this.scrollContainerEl);
 
             // 3. Pagination Bar
@@ -340,7 +408,7 @@
             [25, 50, 100].forEach(size => {
                 const opt = document.createElement('option');
                 opt.value = size;
-                opt.textContent = size;
+                opt.textContent = String(size);
                 if (size === this.pageSize) opt.selected = true;
                 this.pageSizeSelect.appendChild(opt);
             });
@@ -351,7 +419,7 @@
             this.btnFirst = document.createElement('button');
             this.btnFirst.type = 'button';
             this.btnFirst.className = 'btn btn-outline btn-sm dt-btn-nav';
-            this.btnFirst.innerHTML = '&laquo;';
+            this.btnFirst.textContent = '«';
             this.btnFirst.title = 'First page';
             this.btnFirst.setAttribute('aria-label', 'First page');
             pageControls.appendChild(this.btnFirst);
@@ -359,7 +427,7 @@
             this.btnPrev = document.createElement('button');
             this.btnPrev.type = 'button';
             this.btnPrev.className = 'btn btn-outline btn-sm dt-btn-nav';
-            this.btnPrev.innerHTML = '&lsaquo;';
+            this.btnPrev.textContent = '‹';
             this.btnPrev.title = 'Previous page';
             this.btnPrev.setAttribute('aria-label', 'Previous page');
             pageControls.appendChild(this.btnPrev);
@@ -372,7 +440,7 @@
             this.btnNext = document.createElement('button');
             this.btnNext.type = 'button';
             this.btnNext.className = 'btn btn-outline btn-sm dt-btn-nav';
-            this.btnNext.innerHTML = '&rsaquo;';
+            this.btnNext.textContent = '›';
             this.btnNext.title = 'Next page';
             this.btnNext.setAttribute('aria-label', 'Next page');
             pageControls.appendChild(this.btnNext);
@@ -380,7 +448,7 @@
             this.btnLast = document.createElement('button');
             this.btnLast.type = 'button';
             this.btnLast.className = 'btn btn-outline btn-sm dt-btn-nav';
-            this.btnLast.innerHTML = '&raquo;';
+            this.btnLast.textContent = '»';
             this.btnLast.title = 'Last page';
             this.btnLast.setAttribute('aria-label', 'Last page');
             pageControls.appendChild(this.btnLast);
@@ -418,7 +486,7 @@
             this.btnCloseDrawer = document.createElement('button');
             this.btnCloseDrawer.type = 'button';
             this.btnCloseDrawer.className = 'btn btn-outline btn-sm dt-btn-close';
-            this.btnCloseDrawer.innerHTML = '&times;';
+            this.btnCloseDrawer.textContent = '×';
             this.btnCloseDrawer.title = 'Close details (Esc)';
             this.btnCloseDrawer.setAttribute('aria-label', 'Close details');
             drawerActions.appendChild(this.btnCloseDrawer);
@@ -614,7 +682,7 @@
         }
 
         _buildColPickerList() {
-            this.colPickerList.innerHTML = '';
+            this.colPickerList.replaceChildren();
             this.allColumns.forEach(col => {
                 const label = document.createElement('label');
                 label.className = 'dt-picker-item';
@@ -695,7 +763,7 @@
         }
 
         _renderHeaders() {
-            this.theadEl.innerHTML = '';
+            this.theadEl.replaceChildren();
             const tr = document.createElement('tr');
 
             // Render visible columns
@@ -714,7 +782,7 @@
         }
 
         _renderRows() {
-            this.tbodyEl.innerHTML = '';
+            this.tbodyEl.replaceChildren();
 
             if (this.rows.length === 0) {
                 const tr = document.createElement('tr');
@@ -835,8 +903,8 @@
             const absRowNumber = (this.currentPage - 1) * this.pageSize + rowIdx + 1;
             this.drawerTitleEl.textContent = `Row Details (#${absRowNumber.toLocaleString()})`;
 
-            // Populate fields
-            this.drawerBodyEl.innerHTML = '';
+            // Populate fields strictly via textContent
+            this.drawerBodyEl.replaceChildren();
             this.allColumns.forEach(col => {
                 const item = document.createElement('div');
                 item.className = 'dt-drawer-field';
@@ -850,7 +918,10 @@
                 valEl.className = 'dt-drawer-value';
                 const val = row[col];
                 if (val === null || val === undefined || String(val).trim() === '') {
-                    valEl.innerHTML = '<span class="dt-empty-dash">—</span>';
+                    const dash = document.createElement('span');
+                    dash.className = 'dt-empty-dash';
+                    dash.textContent = '—';
+                    valEl.appendChild(dash);
                 } else {
                     valEl.textContent = String(val);
                 }
@@ -881,6 +952,8 @@
         getSessionId,
         wipeSession,
         fetchWithSession,
+        showLoadingState,
+        hideLoadingState,
         escapeHtml,
         isNumeric,
         DataTable,

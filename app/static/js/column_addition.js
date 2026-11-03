@@ -289,7 +289,7 @@
      * Preview Table via DataTable
      */
     function initPreviewTable(previewData) {
-        previewTableContainer.innerHTML = '';
+        previewTableContainer.replaceChildren();
         dataTableInstance = new window.CardLyze.DataTable(previewTableContainer, {
             initialData: previewData,
             hiddenColumns: [],
@@ -350,7 +350,7 @@
                 try {
                     const err = await response.json();
                     if (err.detail) msg = err.detail;
-                } catch (e) {}
+                } catch (e) { }
 
                 if (response.status === 401) {
                     showError('Session Expired', 'Your session has expired. Please re-upload your file to continue.');
@@ -419,7 +419,7 @@
         dropzone.classList.remove('hidden');
         hideResults();
         if (previewTableContainer) {
-            previewTableContainer.innerHTML = '';
+            previewTableContainer.replaceChildren();
         }
     });
 
@@ -442,3 +442,4 @@
     });
 
 })();
+

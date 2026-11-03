@@ -99,6 +99,11 @@ async def concurrency_test_parse(duration: float = 0.5):
     return await run_parse_task(_slow_parse)
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
 # Include Feature Routers
 app.include_router(column_addition_router)
 

@@ -86,7 +86,7 @@ async def upload_file(
     if not result["ok"]:
         session.coladd.clear()
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=result["message"],
         )
 
@@ -144,7 +144,7 @@ async def get_preview(
 
     if page_size not in (25, 50, 100):
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail="page_size must be 25, 50, or 100",
         )
 

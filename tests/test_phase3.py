@@ -547,3 +547,83 @@ def test_static_html_csp_hygiene():
         # Check inline event handlers
         inline_event_handlers = inline_event_handler_pattern.findall(content)
         assert len(inline_event_handlers) == 0, f"{rel_name} contains forbidden on*= handler: {inline_event_handlers}"
+
+
+def test_static_js_csp_hygiene():
+    """Verify static JS files contain no inline styles, no setAttribute('style'), no on* handlers, no eval, no new Function, and no innerHTML."""
+    js_dir = Path(__file__).resolve().parent.parent / "app" / "static" / "js"
+    js_files = list(js_dir.glob("*.js"))
+    assert len(js_files) > 0, "No JS files found in app/static/js"
+
+    # Regexes for CSP & hygiene violations in JS code (evaluated on non-comment code)
+    patterns = {
+        "style attribute in markup": re.compile(r'style\s*=\s*["\']', re.IGNORECASE),
+        "setAttribute('style')": re.compile(r"setAttribute\s*\(\s*['\"]style", re.IGNORECASE),
+        "inline on*= event handler": re.compile(r'\bon[a-z]+\s*=', re.IGNORECASE),
+        "eval()": re.compile(r'\beval\s*\(', re.IGNORECASE),
+        "new Function": re.compile(r'new\s+Function\b', re.IGNORECASE),
+        "innerHTML assignment": re.compile(r'\.innerHTML\s*=', re.IGNORECASE),
+    }
+
+    for js_file in js_files:
+        raw_lines = js_file.read_text(encoding="utf-8").splitlines()
+        # Filter out comments so comments mentioning CSP rules aren't flagged
+        code_lines = [
+            line for line in raw_lines
+            if not line.strip().startswith("//") and not line.strip().startswith("*")
+        ]
+        code_text = "\n".join(code_lines)
+        rel_name = js_file.name
+
+        for check_name, pattern in patterns.items():
+            matches = pattern.findall(code_text)
+            assert len(matches) == 0, f"{rel_name} contains forbidden {check_name}: {matches}"
+
+
+def test_xss_payload_in_data_preserved_as_plain_text():
+    """Verify that potentially malicious XSS payloads in cell data and headers are treated purely as literal text."""
+    xss_cells = [
+        "<img src=x onerror=alert(1)>",
+        "<script>alert('xss')</script>",
+        "\"><svg/onload=alert('svg')>",
+        "javascript:alert('link')",
+        "=cmd|'/C calc'!A0",
+    ]
+    # Pad to 29 columns for VISA
+    row = xss_cells + [f"col_{i}" for i in range(len(xss_cells), 29)]
+    raw_bytes = make_raw_xlsx([row])
+
+    with TestClient(app) as client:
+        sess_res = client.post("/api/session")
+        session_id = sess_res.json()["session_id"]
+        headers = {
+            "X-Session-Id": session_id,
+            "X-Filename": "xss_test.xlsx",
+            "Content-Type": "application/octet-stream",
+        }
+
+        # Upload
+        up_res = client.post("/api/column-addition/visa/upload", content=raw_bytes, headers=headers)
+        assert up_res.status_code == 200
+
+        # Preview: verify data is returned verbatim in JSON without evaluation or escaping loss
+        prev_res = client.get("/api/column-addition/preview?page=1&page_size=25", headers={"X-Session-Id": session_id})
+        assert prev_res.status_code == 200
+        preview_data = prev_res.json()
+        first_row = preview_data["rows"][0]
+
+        # The first column should contain the raw string exactly
+        first_col_name = preview_data["columns"][0]
+        assert first_row[first_col_name] == "<img src=x onerror=alert(1)>"
+        assert first_row[preview_data["columns"][1]] == "<script>alert('xss')</script>"
+
+        # Export: verify values survive into the downloaded Excel as plain text strings
+        exp_res = client.get("/api/column-addition/export", headers={"X-Session-Id": session_id})
+        assert exp_res.status_code == 200
+        import openpyxl
+        wb = openpyxl.load_workbook(io.BytesIO(exp_res.content), data_only=False)
+        sheet = wb.active
+        assert sheet.cell(2, 1).value == "<img src=x onerror=alert(1)>"
+        assert sheet.cell(2, 2).value == "<script>alert('xss')</script>"
+        assert sheet.cell(2, 5).value == "=cmd|'/C calc'!A0"
+
