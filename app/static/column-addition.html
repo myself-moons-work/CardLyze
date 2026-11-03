@@ -13,14 +13,16 @@
                 <span class="brand-icon">CL</span>
                 <span>CardLyze</span>
             </a>
-            <ul class="nav-links">
-                <li><a href="/" class="nav-link">Home</a></li>
-                <li><a href="/column-addition.html" class="nav-link active">Column Addition</a></li>
-                <li><a href="/analysis.html" class="nav-link">Analysis</a></li>
-            </ul>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/column-addition.html" class="nav-link active" aria-current="page">Column Addition</a></li>
+                    <li><a href="/analysis.html" class="nav-link">Analysis</a></li>
+                </ul>
+            </nav>
             <div class="session-indicator" title="Your session is isolated and purely in-memory">
                 <span class="session-dot"></span>
-                <span class="session-text">Initializing...</span>
+                <span class="session-text">Session Ready</span>
             </div>
         </div>
     </header>
@@ -28,27 +30,156 @@
     <main class="main-content">
         <section class="hero">
             <h1 class="hero-title">Column Addition</h1>
-            <p class="hero-subtitle">Upload headerless Excel transaction files to automatically append standardized column headers and download.</p>
+            <p class="hero-subtitle">Upload headerless Excel transaction workbooks to automatically append verified standardized headers and export with 100% data fidelity.</p>
         </section>
 
-        <section class="privacy-banner placeholder-banner">
-            <div class="placeholder-icon">📋</div>
-            <h2 class="placeholder-title">Column Addition Module</h2>
-            <p class="placeholder-desc">
-                Backend service logic will be implemented in Phase 2, and interactive UI with preview tables will be deployed in Phase 3.
-            </p>
-            <a href="/" class="btn btn-outline">&larr; Return to Dashboard</a>
+        <!-- Step 1: Card Selection -->
+        <section class="step-section" id="step-1-section">
+            <div class="step-header">
+                <span class="step-badge">Step 1</span>
+                <h2 class="step-title">Select Card Type</h2>
+            </div>
+            <p class="step-desc">Choose the network format matching your raw transaction file.</p>
+
+            <div class="card-select-grid" role="radiogroup" aria-label="Select Card Type">
+                <div class="card-option selected" data-card="visa" role="radio" aria-checked="true" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">VISA</span>
+                        <span class="card-option-badge">29 columns</span>
+                    </div>
+                    <p class="card-option-desc">Standard VISA scheme transaction export with fixed 29 columns.</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+
+                <div class="card-option" data-card="pinelabs" role="radio" aria-checked="false" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">PineLabs</span>
+                        <span class="card-option-badge">68 columns</span>
+                    </div>
+                    <p class="card-option-desc">PineLabs POS settlement export with detailed 68 columns.</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+
+                <div class="card-option" data-card="vegapay" role="radio" aria-checked="false" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">Vegapay</span>
+                        <span class="card-option-badge">61 columns</span>
+                    </div>
+                    <p class="card-option-desc">Vegapay issuer processing feed with 61 standardized columns.</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Upload Zone -->
+        <section class="step-section" id="step-2-section">
+            <div class="step-header">
+                <span class="step-badge">Step 2</span>
+                <h2 class="step-title">Upload Excel File</h2>
+            </div>
+            <p class="step-desc">Select or drop your headerless Excel (.xlsx) file. Max size 50 MB.</p>
+
+            <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload Excel File">
+                <input type="file" id="file-input" class="file-input hidden" accept=".xlsx">
+                <div class="dropzone-content">
+                    <div class="dropzone-icon">📁</div>
+                    <p class="dropzone-primary-text">Drag &amp; drop your Excel (.xlsx) file here, or <span class="dropzone-browse">browse</span></p>
+                    <p class="dropzone-sub-text">Only .xlsx format accepted &bull; Max 50 MB &bull; Processed purely in-memory</p>
+                </div>
+            </div>
+
+            <!-- Selected File Card -->
+            <div class="file-card hidden" id="file-card">
+                <div class="file-card-info">
+                    <span class="file-card-icon">📄</span>
+                    <div>
+                        <div class="file-card-name" id="file-card-name">filename.xlsx</div>
+                        <div class="file-card-size" id="file-card-size">0 KB</div>
+                    </div>
+                </div>
+                <div class="file-card-actions">
+                    <button type="button" class="btn btn-outline btn-sm" id="btn-change-file">Change File</button>
+                    <button type="button" class="btn btn-primary" id="btn-process">Add Headers &amp; Process</button>
+                </div>
+            </div>
+
+            <!-- Processing / Indeterminate Progress Card -->
+            <div class="processing-card hidden" id="processing-card">
+                <div class="processing-header">
+                    <span class="processing-title">Processing Workbook</span>
+                    <span class="processing-timer" id="processing-timer">0s elapsed</span>
+                </div>
+                <div class="processing-file-name" id="processing-file-name">filename.xlsx</div>
+                <div class="progress-bar-indeterminate"></div>
+                <p class="processing-subtext" id="processing-subtext">Validating column structure and mapping headers in memory...</p>
+                <div class="processing-large-note hidden" id="processing-large-note">
+                    <span class="note-icon">⏳</span>
+                    <span>Large file (&gt;30 MB): parsing may take up to a minute. Please keep this tab open.</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Result & Preview -->
+        <section class="step-section hidden" id="step-3-section">
+            <div class="step-header">
+                <span class="step-badge">Step 3</span>
+                <h2 class="step-title">Preview &amp; Download</h2>
+            </div>
+
+            <!-- Banners -->
+            <div class="banner banner-success hidden" id="banner-success" role="alert">
+                <div class="banner-icon">✓</div>
+                <div class="banner-content">
+                    <h3 class="banner-title" id="banner-success-title">Headers Mapped Successfully</h3>
+                    <p class="banner-desc" id="banner-success-desc">Mapped 29 columns across 150,000 rows in 1.2s.</p>
+                </div>
+            </div>
+
+            <div class="banner banner-error hidden" id="banner-error" role="alert">
+                <div class="banner-icon">✕</div>
+                <div class="banner-content">
+                    <h3 class="banner-title" id="banner-error-title">Processing Failed</h3>
+                    <p class="banner-desc" id="banner-error-desc">Column count mismatch.</p>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" id="btn-error-retry">Try Again</button>
+            </div>
+
+            <!-- Actions Bar -->
+            <div class="preview-actions-bar" id="preview-actions-bar">
+                <div class="preview-actions-left">
+                    <button type="button" class="btn btn-primary btn-lg" id="btn-download">
+                        <span class="btn-icon">⬇</span>
+                        <span>Download Excel (.xlsx)</span>
+                    </button>
+                    <button type="button" class="btn btn-outline btn-lg" id="btn-clear">
+                        <span class="btn-icon">🗑</span>
+                        <span>Clear Data</span>
+                    </button>
+                </div>
+                <div class="preview-actions-right">
+                    <span class="preview-safe-badge" title="No formulas or links evaluated; raw strings 100% preserved">Text Safety Verified</span>
+                </div>
+            </div>
+
+            <!-- Exporting indicator -->
+            <div class="export-loading-card hidden" id="export-loading-card">
+                <div class="progress-bar-indeterminate"></div>
+                <div class="export-status-text">Preparing Excel file for download... <span id="export-timer">0s</span></div>
+            </div>
+
+            <!-- Preview Data Table Container -->
+            <div class="preview-table-wrapper" id="preview-table-container"></div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="footer-container">
-            <span>CardLyze &bull; Internal Card Analytics Platform</span>
-            <span>Module Scheduled for Phase 2 & 3</span>
+            <span>CardLyze &bull; Privacy-Preserving Card Transaction Processing</span>
+            <span>Zero Disk Persistence &bull; Strict CSP &bull; In-Memory xlsxwriter</span>
         </div>
     </footer>
 
     <script src="/js/common.js"></script>
+    <script src="/js/column_addition.js"></script>
 </body>
 </html>
-

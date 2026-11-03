@@ -445,3 +445,917 @@ body {
     50% { left: 35%; width: 50%; }
     100% { left: 100%; width: 30%; }
 }
+
+
+/* ==========================================================================
+   Phase 3: Column Addition & Reusable DataTable Component Styles
+   Strict CSP: 100% External CSS, No Inline Styles
+   ========================================================================== */
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+/* Base Buttons Extension */
+.btn-sm {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.btn-lg {
+    padding: 0.85rem 1.75rem;
+    font-size: 1.05rem;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.btn-icon {
+    font-size: 1.1em;
+}
+
+/* Step Sections */
+.step-section {
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.step-badge {
+    background-color: rgba(56, 189, 248, 0.15);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.65rem;
+    border-radius: 9999px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.step-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.step-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Step 1: Card Type Selection */
+.card-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.card-option {
+    background-color: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    outline: none;
+}
+
+.card-option:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.card-option:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+}
+
+.card-option.selected {
+    border-color: var(--accent);
+    background-color: rgba(56, 189, 248, 0.07);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+.card-option-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.card-option-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.card-option-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: var(--bg-card);
+    color: var(--accent);
+    padding: 0.2rem 0.55rem;
+    border-radius: var(--radius-sm);
+}
+
+.card-option-desc {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+    margin-bottom: 1rem;
+}
+
+.card-option-check {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+    display: none;
+}
+
+.card-option.selected .card-option-check {
+    display: block;
+}
+
+/* Step 2: Upload Dropzone */
+.dropzone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 3rem 1.5rem;
+    text-align: center;
+    background-color: var(--bg-primary);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.dropzone:hover,
+.dropzone.dragover {
+    border-color: var(--accent);
+    background-color: rgba(56, 189, 248, 0.05);
+}
+
+.dropzone:focus-visible {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+}
+
+.dropzone-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.dropzone-primary-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.35rem;
+}
+
+.dropzone-browse {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.dropzone-sub-text {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+/* Selected File Card */
+.file-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.file-card-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-card-icon {
+    font-size: 2rem;
+}
+
+.file-card-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.file-card-size {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.file-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* Processing Card */
+.processing-card {
+    background-color: var(--bg-primary);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+}
+
+.processing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.processing-title {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 1rem;
+}
+
+.processing-timer {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.processing-file-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    word-break: break-all;
+}
+
+.processing-subtext {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin-top: 0.75rem;
+}
+
+.processing-large-note {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background-color: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--radius-sm);
+    color: #fde68a;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+/* Step 3: Banners */
+.banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+}
+
+.banner-icon {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.banner-content {
+    flex: 1;
+}
+
+.banner-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.banner-desc {
+    font-size: 0.92rem;
+    line-height: 1.5;
+}
+
+.banner-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #a7f3d0;
+}
+
+.banner-success .banner-icon {
+    background-color: var(--success);
+    color: #064e3b;
+}
+
+.banner-success .banner-title {
+    color: #6ee7b7;
+}
+
+.banner-error {
+    background-color: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
+.banner-error .banner-icon {
+    background-color: var(--danger);
+    color: #ffffff;
+}
+
+.banner-error .banner-title {
+    color: #f87171;
+}
+
+/* Preview Actions Bar */
+.preview-actions-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.preview-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.preview-actions-right {
+    display: flex;
+    align-items: center;
+}
+
+.preview-safe-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--success);
+    background-color: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.preview-safe-badge::before {
+    content: "🛡";
+}
+
+/* Export Loading Card */
+.export-loading-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.export-status-text {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    margin-top: 0.6rem;
+}
+
+/* ==========================================================================
+   DataTable Component Styles
+   ========================================================================== */
+.dt-root {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* Toolbar */
+.dt-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.dt-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.dt-toolbar-right {
+    display: flex;
+    align-items: center;
+    font-size: 0.88rem;
+    color: var(--text-muted);
+}
+
+.dt-caret {
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+}
+
+/* Column Picker Dropdown */
+.dt-col-picker-container {
+    position: relative;
+}
+
+.dt-col-picker-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 290px;
+    max-height: 380px;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+}
+
+.dt-picker-header {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: var(--bg-card);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.dt-picker-search {
+    width: 100%;
+    padding: 0.4rem 0.65rem;
+    background-color: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    margin-bottom: 0.5rem;
+    outline: none;
+}
+
+.dt-picker-search:focus {
+    border-color: var(--accent);
+}
+
+.dt-picker-shortcuts {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.dt-shortcut-btn {
+    background: none;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 0.2rem 0.5rem;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.dt-shortcut-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background-color: rgba(56, 189, 248, 0.08);
+}
+
+.dt-picker-list {
+    overflow-y: auto;
+    padding: 0.5rem;
+    max-height: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.dt-picker-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+}
+
+.dt-picker-item:hover {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.dt-picker-checkbox {
+    cursor: pointer;
+}
+
+.dt-picker-col-name {
+    word-break: break-all;
+}
+
+/* Scrollable Table Box */
+.dt-scroll-container {
+    max-height: 60vh;
+    overflow: auto;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background-color: var(--bg-surface);
+    position: relative;
+}
+
+.dt-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    text-align: left;
+}
+
+/* Sticky Headers & First Column */
+.dt-th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    font-weight: 700;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+    user-select: none;
+    letter-spacing: 0.02em;
+}
+
+.dt-th-sticky-first {
+    position: sticky;
+    left: 0;
+    z-index: 20;
+    background-color: var(--bg-card);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.dt-row {
+    cursor: pointer;
+    transition: background-color 0.1s ease;
+}
+
+.dt-row:nth-child(even) {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.dt-row:hover {
+    background-color: rgba(56, 189, 248, 0.08);
+}
+
+.dt-row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.dt-row-selected {
+    background-color: rgba(56, 189, 248, 0.16) !important;
+}
+
+.dt-td {
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    max-width: 240px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-secondary);
+}
+
+.dt-td-sticky-first {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background-color: var(--bg-surface);
+    font-weight: 600;
+    color: var(--text-primary);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.dt-row:nth-child(even) .dt-td-sticky-first {
+    background-color: #1a2436;
+}
+
+.dt-row:hover .dt-td-sticky-first {
+    background-color: #24344d;
+}
+
+.dt-row-selected .dt-td-sticky-first {
+    background-color: #1e3a5f !important;
+}
+
+/* Numeric & Text Formatting */
+.dt-cell-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-family: var(--font-mono);
+}
+
+.dt-cell-text {
+    text-align: left;
+}
+
+.dt-empty-dash {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+.dt-empty-message {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Density Compact Mode */
+.dt-compact .dt-th {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+.dt-compact .dt-td {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+}
+
+/* In-table Loader */
+.dt-table-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(15, 23, 42, 0.7);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 30;
+    gap: 0.75rem;
+}
+
+.dt-loader-text {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+/* Pagination Bar */
+.dt-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+}
+
+.dt-page-info {
+    font-weight: 500;
+}
+
+.dt-page-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.dt-size-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-right: 0.5rem;
+}
+
+.dt-select {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.3rem 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    outline: none;
+}
+
+.dt-select:focus {
+    border-color: var(--accent);
+}
+
+.dt-btn-nav {
+    padding: 0.3rem 0.65rem;
+    font-weight: 700;
+}
+
+.dt-page-indicator {
+    padding: 0 0.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Row Detail Drawer (Slide-Out Side Panel) */
+.dt-drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.dt-drawer {
+    width: 440px;
+    max-width: 90vw;
+    height: 100%;
+    background-color: var(--bg-surface);
+    border-left: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dt-drawer.open {
+    transform: translateX(0);
+}
+
+.dt-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border-subtle);
+    background-color: var(--bg-card);
+}
+
+.dt-drawer-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.dt-drawer-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dt-btn-close {
+    font-size: 1.2rem;
+    padding: 0.2rem 0.6rem;
+}
+
+.dt-drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.dt-drawer-field {
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 0.75rem;
+}
+
+.dt-drawer-field:last-child {
+    border-bottom: none;
+}
+
+.dt-drawer-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+    word-break: break-all;
+}
+
+.dt-drawer-value {
+    font-size: 0.92rem;
+    color: var(--text-primary);
+    word-break: break-all;
+    white-space: pre-wrap;
+    line-height: 1.5;
+}
+
+.dt-clipboard-fallback {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    opacity: 0;
+}
+
+/* Mobile & Small Screen Responsive Adjustments (390px Viewport) */
+@media (max-width: 640px) {
+    .step-section {
+        padding: 1.25rem;
+    }
+
+    .card-select-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dropzone {
+        padding: 2rem 1rem;
+    }
+
+    .file-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .file-card-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .preview-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .preview-actions-left {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .preview-actions-left .btn {
+        width: 100%;
+    }
+
+    .dt-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dt-pagination {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .dt-drawer {
+        width: 100vw;
+        max-width: 100vw;
+    }
+}
