@@ -138,6 +138,35 @@
         }
     });
 
+    /**
+     * Show indeterminate loading state with file name while parsing in background.
+     */
+    function showLoadingState(container, fileName) {
+        if (!container) return;
+        container.innerHTML = `
+            <div class="loading-overlay">
+                <div class="loading-file-name">Processing: ${escapeHtml(fileName)}</div>
+                <div class="progress-bar-indeterminate"></div>
+                <div class="loading-status-text">Parsing and validating transaction data...</div>
+            </div>
+        `;
+    }
+
+    function hideLoadingState(container) {
+        if (!container) return;
+        container.innerHTML = '';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
     // Note: Session is created lazily on first upload / API call, not eagerly on page load.
 
     // Expose CardLyze namespace
@@ -146,6 +175,8 @@
         getSessionId,
         wipeSession,
         fetchWithSession,
+        showLoadingState,
+        hideLoadingState,
     };
 })(window);
 

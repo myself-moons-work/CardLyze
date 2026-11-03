@@ -17,6 +17,12 @@ class Settings:
     MAX_CONCURRENT_SESSIONS: int = int(
         os.getenv("CARDLYZE_MAX_CONCURRENT_SESSIONS", "10")
     )
+    MAX_CONCURRENT_PARSES: int = int(
+        os.getenv("CARDLYZE_MAX_CONCURRENT_PARSES", "2")
+    )
+    PARSE_SEMAPHORE_TIMEOUT_SECONDS: float = float(
+        os.getenv("CARDLYZE_PARSE_SEMAPHORE_TIMEOUT", "30.0")
+    )
     SWEEPER_INTERVAL_SECONDS: int = int(
         os.getenv("CARDLYZE_SWEEPER_INTERVAL_SECONDS", "60")
     )

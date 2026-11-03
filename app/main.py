@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.security import SecurityHeadersMiddleware
+from app.services.concurrency import run_parse_task
 from app.store import session_store
 
 
@@ -83,6 +84,18 @@ async def delete_session(
             detail="Session not found or already expired",
         )
     return {"status": "deleted"}
+
+
+@app.post("/api/concurrency/test-parse")
+async def concurrency_test_parse(duration: float = 0.5):
+    """Internal/test endpoint running a parse task in threadpool guarded by concurrency semaphore."""
+    import time
+
+    def _slow_parse():
+        time.sleep(duration)
+        return {"status": "parsed"}
+
+    return await run_parse_task(_slow_parse)
 
 
 # Mount static frontend assets

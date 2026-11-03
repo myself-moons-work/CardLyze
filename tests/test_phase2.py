@@ -255,6 +255,10 @@ def test_single_source_of_truth_strict():
     assert root_cards.DATE_CONFIGS is app_cards.DATE_CONFIGS
     assert root_cards.get_card_config is app_cards.get_card_config
     assert root_cards.derive_country is app_cards.derive_country
+    assert root_cards.derive_mcc is app_cards.derive_mcc
+    assert root_cards.format_mcc_display is app_cards.format_mcc_display
+    assert root_cards.collapse_whitespace is app_cards.collapse_whitespace
+    assert root_cards.search_dataframe is app_cards.search_dataframe
     assert root_cards.parse_dates is app_cards.parse_dates
     assert root_cards.apply_column_padding is app_cards.apply_column_padding
     assert root_cards.NULL_TOKENS is app_cards.NULL_TOKENS
@@ -389,3 +393,151 @@ def test_null_tokens_handling_in_typing():
     # Only 'abc' triggers a numeric warning; '-', '--', 'nan' do not trigger warnings
     assert "Days count" in result["warnings"]
     assert result["warnings"]["Days count"]["failed_count"] == 1
+
+
+# 15. RRN Not Padded & Quality Note Reported
+def test_padding_rrn_not_padded_and_quality_note_reported():
+    """Verify RRN is not padded, short values remain unchanged, and non-12 character count is reported in summary."""
+    df_vega = pd.DataFrame({
+        "Terminal ID": ["123", "45678901", "-"],  # Padded column (pad 8)
+        "RRN": ["123456", "123456789012", "-"],  # RRN must NOT be padded
+    })
+    result = apply_card_typing(df_vega, "vegapay")
+    df_typed = result["df"]
+
+    # Terminal ID is padded
+    assert df_typed["Terminal ID"].iloc[0] == "00000123"
+    assert df_typed["Terminal ID"].iloc[1] == "45678901"
+
+    # RRN is NOT padded: '123456' remains '123456'
+    assert df_typed["RRN"].iloc[0] == "123456"
+    assert df_typed["RRN"].iloc[1] == "123456789012"
+    assert df_typed["RRN"].iloc[2] == "-"
+
+    # Data quality note reports count of non-12 length values
+    assert result["rrn_quality_note"] == "1 RRN values are not 12 characters"
+
+    # Check column metadata marked as derived for padded columns
+    col_meta = {c["name"]: c for c in result["columns_info"]}
+    assert col_meta["Terminal ID"]["is_derived"] is True
+    assert col_meta["RRN"]["is_derived"] is False
+
+
+# 16. Unknown Country Normal Selectable Filter Value & Summary
+def test_unknown_country_selectable_filter_and_summary():
+    """Verify Unknown country is a selectable filter value and country summary counts are computed dynamically."""
+    df = pd.DataFrame({
+        "spldes": [
+            "STORE DUBAI AE",
+            "STORE LONDON GB",
+            "STORE UNKNOWN 12345",
+            "-",
+        ]
+    })
+    result = apply_card_typing(df, "visa")
+    df_typed = result["df"]
+
+    assert "Unknown" in df_typed["country_code"].unique()
+    # Filter selection by Unknown works
+    filtered = df_typed[df_typed["country_code"] == "Unknown"]
+    assert len(filtered) == 2
+
+    # Country summary is computed from data
+    summary = result["country_summary"]
+    assert summary["unknown_count"] == 2
+    assert summary["unknown_pct"] == 50.0
+    assert "2 transactions (50.0%) have Unknown country" in summary["note"]
+    assert summary["confidence"] == "derived"
+
+
+# 17. MCC Normalization Synthetic Tests Across All Cards
+def test_mcc_normalization_synthetic_all_cards():
+    """Verify MCC normalization parses code & description for PineLabs, Vegapay, and VISA, preserving leading zeros."""
+    from app.cards import derive_mcc, format_mcc_display
+
+    # 1. PineLabs split: '<4 digits>-<description>'
+    df_pine = pd.DataFrame({
+        "mcc": [
+            "0742-VETERINARY SERVICES",
+            "5411 - GROCERY STORES",
+            "-",
+            "INVALID_MCC",
+            None,
+        ]
+    })
+    code_s, desc_s = derive_mcc(df_pine, "pinelabs")
+    assert code_s.tolist() == ["0742", "5411", "", "", ""]
+    assert desc_s.tolist() == ["VETERINARY SERVICES", "GROCERY STORES", "", "", ""]
+
+    # 2. Vegapay: MCC and MCC Description
+    df_vega = pd.DataFrame({
+        "MCC": ["0742", "5411", "-", ""],
+        "MCC Description": ["Veterinary", "Grocery", "-", ""],
+    })
+    code_v, desc_v = derive_mcc(df_vega, "vegapay")
+    assert code_v.tolist() == ["0742", "5411", "", ""]
+    assert desc_v.tolist() == ["Veterinary", "Grocery", "", ""]
+
+    # 3. VISA: spmcat is code, no description
+    df_visa = pd.DataFrame({
+        "spmcat": ["0742", "5411", "-"],
+    })
+    code_visa, desc_visa = derive_mcc(df_visa, "visa")
+    assert code_visa.tolist() == ["0742", "5411", ""]
+    assert desc_visa.tolist() == ["", "", ""]
+
+    # 4. Display formatting helper
+    assert format_mcc_display("0742", "Veterinary") == "0742 - Veterinary"
+    assert format_mcc_display("5411", "") == "5411"
+    assert format_mcc_display("", "") == ""
+
+
+# 18. Whitespace Insensitive Search
+def test_whitespace_insensitive_search():
+    """Verify search is insensitive to runs of spaces, tabs, and newlines while raw values remain untouched for export."""
+    from app.cards import collapse_whitespace, search_dataframe
+
+    raw_val = "BLUE   MART\nFRESH   MINI  DUBAI AE"
+    df = pd.DataFrame({
+        "spldes": [raw_val, "OTHER STORE"],
+        "city": ["DUBAI", "LONDON"],
+    })
+
+    # Search with multiple spaces and different casing
+    res1 = search_dataframe(df, "blue mart fresh")
+    assert len(res1) == 1
+    assert res1.iloc[0]["spldes"] == raw_val  # Raw value untouched!
+
+    res2 = search_dataframe(df, "  blue    mart   ")
+    assert len(res2) == 1
+    assert res2.iloc[0]["spldes"] == raw_val
+
+    # Unit collapse_whitespace
+    assert collapse_whitespace("  HELLO \n\t WORLD  ") == "HELLO WORLD"
+    assert collapse_whitespace("-") == ""
+
+
+# 19. Concurrency: Slow Parse Does Not Block Health & Semaphore Limit Enforced
+def test_concurrency_slow_parse_does_not_block_health_and_semaphore_limit():
+    """Verify background file parse does not block event loop (/api/health) and semaphore limit is enforced."""
+    import asyncio
+    import httpx
+    from app.main import app
+
+    async def _test_concurrency():
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            # Launch slow parse task in background
+            task = asyncio.create_task(client.post("/api/concurrency/test-parse?duration=0.6"))
+
+            # Health check must respond immediately while parse is running
+            await asyncio.sleep(0.05)
+            health_res = await client.get("/api/health")
+            assert health_res.status_code == 200
+            assert health_res.json() == {"status": "ok"}
+
+            parse_res = await task
+            assert parse_res.status_code == 200
+            assert parse_res.json() == {"status": "parsed"}
+
+    asyncio.run(_test_concurrency())

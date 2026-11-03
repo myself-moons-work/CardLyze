@@ -385,3 +385,63 @@ body {
     max-width: 600px;
     margin: 0 auto 1.5rem auto;
 }
+
+/* Indeterminate Progress Loading State (Concurrency & Upload Parsing) */
+.loading-overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.25rem 2rem;
+    gap: 1rem;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    margin: 1.5rem auto;
+    max-width: 540px;
+    box-shadow: var(--shadow-sm);
+}
+
+.loading-file-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    word-break: break-all;
+    text-align: center;
+}
+
+.loading-status-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.progress-bar-indeterminate {
+    width: 100%;
+    max-width: 440px;
+    height: 6px;
+    background-color: var(--bg-input);
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar-indeterminate::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 40%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-hover));
+    border-radius: 9999px;
+    animation: indeterminate-progress 1.5s infinite ease-in-out;
+}
+
+@keyframes indeterminate-progress {
+    0% { left: -40%; width: 30%; }
+    50% { left: 35%; width: 50%; }
+    100% { left: 100%; width: 30%; }
+}

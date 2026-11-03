@@ -14,6 +14,7 @@ from app.cards import (
     apply_column_padding,
     check_dob_data_quality,
     derive_country,
+    derive_mcc,
     get_card_config,
     get_parse_failures,
     get_shape,
@@ -103,10 +104,33 @@ def apply_card_typing(
         if col in typed_df.columns:
             typed_df[col] = typed_df[col].fillna("").astype(str)
 
-    # 4. Derive country_code column
+    # 4. Derive country_code column and country statistics
     typed_df["country_code"] = derive_country(typed_df, card_cfg)
+    country_s = typed_df["country_code"]
+    unknown_cnt = int((country_s == "Unknown").sum())
+    total_cnt = len(typed_df)
+    unknown_pct = round((unknown_cnt / total_cnt * 100), 2) if total_cnt > 0 else 0.0
+    country_summary = {
+        "unknown_count": unknown_cnt,
+        "unknown_pct": unknown_pct,
+        "note": f"{unknown_cnt} transactions ({unknown_pct}%) have Unknown country",
+        "confidence": card_cfg.country_confidence,
+    }
 
-    # 5. Extract per-column metadata
+    # 5. Derive normalized mcc_code and mcc_description
+    typed_df["mcc_code"], typed_df["mcc_description"] = derive_mcc(typed_df, card_cfg)
+
+    # 6. Informational data quality check for Vegapay RRN (count only, values unchanged)
+    rrn_quality_note = None
+    if card_cfg.key == "vegapay" and "RRN" in typed_df.columns:
+        from app.cards import NULL_TOKENS
+        rrn_s = typed_df["RRN"].dropna().astype(str).str.strip()
+        non_12_mask = (~rrn_s.isin(NULL_TOKENS)) & (rrn_s != "") & (rrn_s.str.len() != 12)
+        non_12_count = int(non_12_mask.sum())
+        if non_12_count > 0:
+            rrn_quality_note = f"{non_12_count} RRN values are not 12 characters"
+
+    # 7. Extract per-column metadata
     total_rows = len(typed_df)
     columns_info: List[Dict[str, Any]] = []
 
@@ -130,8 +154,9 @@ def apply_card_typing(
             "type": col_type,
             "null_pct": null_pct,
             "unique_count": unique_count,
-            "is_key": col in card_cfg.key_cols or col == "country_code",
+            "is_key": col in card_cfg.key_cols or col in ("country_code", "mcc_code"),
             "is_sensitive": col in card_cfg.sensitive_cols,
+            "is_derived": col in ("country_code", "mcc_code", "mcc_description") or col in card_cfg.pad_cols,
         })
 
     return {
@@ -141,8 +166,10 @@ def apply_card_typing(
         "warnings": warnings,
         "date_ranges": date_ranges,
         "dob_quality_note": dob_quality_note,
+        "rrn_quality_note": rrn_quality_note,
         "padded_counts": padded_counts,
         "padding_notes": padding_notes,
         "country_confidence": card_cfg.country_confidence,
+        "country_summary": country_summary,
     }
 

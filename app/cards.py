@@ -111,6 +111,7 @@ class CardConfig:
     key_cols: List[str]
     pad_cols: Dict[str, int] = field(default_factory=dict)
     country_confidence: str = "derived"
+    pad_mcc_to_4: bool = False
 
 
 # --- VISA Card Configuration ---
@@ -453,6 +454,143 @@ def derive_country(df: pd.DataFrame, card: Union[str, CardConfig, Dict[str, Any]
 
     res.name = "country_code"
     return res
+
+
+# --- MCC Normalization ---
+
+def derive_mcc(
+    df: pd.DataFrame,
+    card: Union[str, CardConfig, Dict[str, Any]],
+) -> tuple[pd.Series, pd.Series]:
+    """Derive normalized `mcc_code` and `mcc_description` columns for the Analysis path.
+    
+    Rules:
+    - PineLabs: 'mcc' holds '<4 digits>-<description>' in one string.
+      Parses the leading 4 digits into mcc_code and remainder into mcc_description.
+      Placeholders (e.g. '-') or non-matches become empty strings.
+    - Vegapay: 'MCC' is mcc_code, 'MCC Description' is mcc_description.
+    - VISA: 'spmcat' is mcc_code, mcc_description is empty string.
+    - Optional zero-padding to 4 digits (digit-only) applied if card_cfg.pad_mcc_to_4 is True.
+    """
+    card_cfg = get_card_config(card)
+    card_key = card_cfg.key
+    total_len = len(df)
+
+    if total_len == 0:
+        return pd.Series(dtype="object"), pd.Series(dtype="object")
+
+    mcc_code_list = []
+    mcc_desc_list = []
+
+    if card_key == "pinelabs":
+        col = "mcc"
+        series = df[col] if col in df.columns else pd.Series([None] * total_len, index=df.index)
+        for val in series:
+            if is_null_token(val):
+                mcc_code_list.append("")
+                mcc_desc_list.append("")
+                continue
+            s = str(val).strip()
+            # Match leading 4 digits, optional delimiter and remainder description
+            match = re.match(r"^(\d{4})(?:\s*-\s*|\s+|-)?(.*)$", s)
+            if match:
+                code = match.group(1)
+                desc = match.group(2).strip()
+                if desc in NULL_TOKENS:
+                    desc = ""
+                mcc_code_list.append(code)
+                mcc_desc_list.append(desc)
+            else:
+                mcc_code_list.append("")
+                mcc_desc_list.append("")
+
+    elif card_key == "vegapay":
+        code_col = "MCC"
+        desc_col = "MCC Description"
+        code_s = df[code_col] if code_col in df.columns else pd.Series([None] * total_len, index=df.index)
+        desc_s = df[desc_col] if desc_col in df.columns else pd.Series([None] * total_len, index=df.index)
+        for c_val, d_val in zip(code_s, desc_s):
+            code = "" if is_null_token(c_val) else str(c_val).strip()
+            desc = "" if is_null_token(d_val) else str(d_val).strip()
+            mcc_code_list.append(code)
+            mcc_desc_list.append(desc)
+
+    elif card_key == "visa":
+        code_col = "spmcat"
+        code_s = df[code_col] if code_col in df.columns else pd.Series([None] * total_len, index=df.index)
+        for c_val in code_s:
+            code = "" if is_null_token(c_val) else str(c_val).strip()
+            mcc_code_list.append(code)
+            mcc_desc_list.append("")
+
+    else:
+        mcc_code_list = [""] * total_len
+        mcc_desc_list = [""] * total_len
+
+    # Optional zero-padding to 4 digits (defaults OFF)
+    if card_cfg.pad_mcc_to_4:
+        mcc_code_list = [
+            c.zfill(4) if c.isdigit() and len(c) < 4 else c
+            for c in mcc_code_list
+        ]
+
+    s_code = pd.Series(mcc_code_list, index=df.index, name="mcc_code")
+    s_desc = pd.Series(mcc_desc_list, index=df.index, name="mcc_description")
+    return s_code, s_desc
+
+
+def format_mcc_display(code: Any, description: Any) -> str:
+    """Format MCC for display in filter lists: 'code - description' if description exists."""
+    c = "" if is_null_token(code) else str(code).strip()
+    d = "" if is_null_token(description) else str(description).strip()
+    if not c:
+        return ""
+    if d:
+        return f"{c} - {d}"
+    return c
+
+
+# --- Whitespace Normalization & Search Utilities ---
+
+def collapse_whitespace(val: Any) -> str:
+    """Normalize text by collapsing line breaks, tabs, and runs of spaces into a single space."""
+    if val is None or pd.isna(val):
+        return ""
+    s = str(val).strip()
+    if not s or s in NULL_TOKENS:
+        return ""
+    return re.sub(r"\s+", " ", s)
+
+
+def search_dataframe(
+    df: pd.DataFrame,
+    query: str,
+    columns: Optional[List[str]] = None,
+) -> pd.DataFrame:
+    """Filter DataFrame rows matching search query whitespace-insensitively and case-insensitively.
+    Collapses whitespace on both query and searched values.
+    Raw DataFrame values are kept untouched for export.
+    """
+    clean_query = collapse_whitespace(query).lower()
+    if not clean_query:
+        return df
+
+    if columns:
+        search_cols = [c for c in columns if c in df.columns]
+    else:
+        search_cols = [
+            c for c in df.columns
+            if not c.startswith("_raw_")
+            and not pd.api.types.is_numeric_dtype(df[c])
+            and not pd.api.types.is_datetime64_any_dtype(df[c])
+        ]
+
+    mask = pd.Series(False, index=df.index)
+    for col in search_cols:
+        col_normalized = df[col].astype(str).apply(collapse_whitespace).str.lower()
+        mask = mask | col_normalized.str.contains(clean_query, regex=False)
+
+    return df[mask]
 
 
 # --- Date Parsing & Diagnostics Utilities ---
