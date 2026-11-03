@@ -9,13 +9,12 @@ from typing import Optional
 
 import pandas as pd
 from fastapi import APIRouter, Header, HTTPException, Query, Request, status
-from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 
 from app.cards import CARDS
 from app.config import settings
-from app.services.concurrency import run_parse_task
-from app.services.headers import add_headers, to_xlsx_bytes
+from app.services.concurrency import run_export_task, run_parse_task
+from app.services.headers import add_headers, iter_csv_chunks, to_xlsx_buffer
 from app.store import session_store
 from app.uploads import read_limited_body
 
@@ -201,15 +200,44 @@ async def export_excel(
     date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     export_filename = f"{card_key}_with_headers_{date_str}.xlsx"
 
-    # Export purely in memory via thread pool
-    xlsx_bytes = await run_in_threadpool(to_xlsx_bytes, df)
+    # Export purely in memory via thread pool guarded by export semaphore
+    xlsx_buffer = await run_export_task(to_xlsx_buffer, df)
+    content_len = xlsx_buffer.getbuffer().nbytes
 
     return StreamingResponse(
-        io.BytesIO(xlsx_bytes),
+        xlsx_buffer,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={
             "Content-Disposition": f'attachment; filename="{export_filename}"',
-            "Content-Length": str(len(xlsx_bytes)),
+            "Content-Length": str(content_len),
+        },
+    )
+
+
+@router.get("/export-csv")
+async def export_csv(
+    x_session_id: Optional[str] = Header(None, alias="X-Session-Id"),
+):
+    """Export the mapped DataFrame as a fast streaming CSV file with UTF-8 BOM."""
+    session = _validate_session(x_session_id)
+
+    if not session.coladd or "df" not in session.coladd:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No column addition data to export. Please upload an Excel file first.",
+        )
+
+    df: pd.DataFrame = session.coladd["df"]
+    card_key = session.coladd.get("card_key", "card")
+    date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
+    export_filename = f"{card_key}_with_headers_{date_str}.csv"
+
+    # Synchronous chunk generator streaming ~20,000 rows per chunk
+    return StreamingResponse(
+        iter_csv_chunks(df, chunk_size=20_000),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{export_filename}"',
         },
     )
 

@@ -42,9 +42,12 @@
     const btnErrorRetry = document.getElementById('btn-error-retry');
 
     const previewActionsBar = document.getElementById('preview-actions-bar');
-    const btnDownload = document.getElementById('btn-download');
+    const btnDownloadCsv = document.getElementById('btn-download-csv');
+    const btnDownloadExcel = document.getElementById('btn-download-excel');
+    const excelLargeNote = document.getElementById('excel-large-note');
     const btnClear = document.getElementById('btn-clear');
     const exportLoadingCard = document.getElementById('export-loading-card');
+    const exportStatusLabel = document.getElementById('export-status-label');
     const exportTimer = document.getElementById('export-timer');
     const previewTableContainer = document.getElementById('preview-table-container');
 
@@ -100,7 +103,7 @@
         dropzone.addEventListener(eventName, (e) => {
             e.preventDefault();
             e.stopPropagation();
-            dropzone.classList.add('dragover');
+            dropzone.classList.add('drag-over');
         });
     });
 
@@ -108,20 +111,21 @@
         dropzone.addEventListener(eventName, (e) => {
             e.preventDefault();
             e.stopPropagation();
-            dropzone.classList.remove('dragover');
+            dropzone.classList.remove('drag-over');
         });
     });
 
     dropzone.addEventListener('drop', (e) => {
-        const files = e.dataTransfer.files;
+        const dt = e.dataTransfer;
+        const files = dt.files;
         if (files && files.length > 0) {
-            handleFileSelected(files[0]);
+            handleFileSelect(files[0]);
         }
     });
 
     fileInput.addEventListener('change', () => {
         if (fileInput.files && fileInput.files.length > 0) {
-            handleFileSelected(fileInput.files[0]);
+            handleFileSelect(fileInput.files[0]);
         }
     });
 
@@ -134,27 +138,22 @@
     });
 
     btnErrorRetry.addEventListener('click', () => {
-        hideResults();
-        dropzone.classList.remove('hidden');
         fileInput.value = '';
         selectedFile = null;
+        fileCard.classList.add('hidden');
+        dropzone.classList.remove('hidden');
+        hideResults();
     });
 
-    function handleFileSelected(file) {
+    function handleFileSelect(file) {
         if (!file.name.toLowerCase().endsWith('.xlsx')) {
-            showError('Invalid File Format', 'Only Excel workbooks with .xlsx extension are supported.');
-            fileInput.value = '';
+            showError('Invalid File Format', 'Only Excel files (.xlsx) are supported. Please select an .xlsx file.');
             return;
         }
 
-        // 50 MB limit
-        const MAX_BYTES = 50 * 1024 * 1024;
-        if (file.size > MAX_BYTES) {
-            showError(
-                'File Size Exceeded',
-                `Selected file size is ${formatBytes(file.size)}, which exceeds the maximum allowed limit of 50 MB.`
-            );
-            fileInput.value = '';
+        const maxBytes = 50 * 1024 * 1024;
+        if (file.size > maxBytes) {
+            showError('File Too Large', `The selected file size (${formatBytes(file.size)}) exceeds the maximum allowed limit of 50 MB.`);
             return;
         }
 
@@ -168,71 +167,90 @@
     }
 
     /**
-     * Upload & Process File
+     * Upload & Process Raw File
      */
     btnProcess.addEventListener('click', async () => {
         if (!selectedFile) return;
 
-        btnProcess.disabled = true;
-        btnChangeFile.disabled = true;
+        let sessionId = window.CardLyze.getSessionId();
+        if (!sessionId) {
+            try {
+                sessionId = await window.CardLyze.initSession();
+            } catch (err) {
+                showError('Session Initialization Error', 'Failed to initialize session. Please reload the page.');
+                return;
+            }
+        }
+
+        // Show processing UI
         fileCard.classList.add('hidden');
         processingCard.classList.remove('hidden');
         processingFileName.textContent = selectedFile.name;
+        hideResults();
 
-        if (selectedFile.size > 30 * 1024 * 1024) {
+        // 30MB warning note
+        const isLarge = selectedFile.size > (30 * 1024 * 1024);
+        if (isLarge) {
             processingLargeNote.classList.remove('hidden');
         } else {
             processingLargeNote.classList.add('hidden');
         }
 
-        // Start elapsed timer
-        let elapsed = 0;
+        btnProcess.disabled = true;
+        btnChangeFile.disabled = true;
+
+        let elapsedSeconds = 0;
         processingTimer.textContent = '0s elapsed';
         clearInterval(parseTimerInterval);
         parseTimerInterval = setInterval(() => {
-            elapsed++;
-            processingTimer.textContent = `${elapsed}s elapsed`;
+            elapsedSeconds++;
+            processingTimer.textContent = `${elapsedSeconds}s elapsed`;
         }, 1000);
 
         try {
-            // Lazy session creation: creates session only on first upload attempt
-            const sessionId = await window.CardLyze.initSession();
-
-            const startTime = performance.now();
-            const response = await fetch(`/api/column-addition/${selectedCard}/upload`, {
+            const url = `/api/column-addition/${selectedCard}/upload`;
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/octet-stream',
                     'X-Session-Id': sessionId,
                     'X-Filename': selectedFile.name,
-                    'Content-Type': 'application/octet-stream',
                 },
                 body: selectedFile,
             });
 
             clearInterval(parseTimerInterval);
-            const durationSec = ((performance.now() - startTime) / 1000).toFixed(1);
 
             if (!response.ok) {
-                let errDetail = `Server responded with status ${response.status}`;
+                let errorTitle = 'Upload Failed';
+                let errorMessage = `Server returned HTTP ${response.status}`;
+
                 try {
                     const errJson = await response.json();
-                    if (errJson.detail) errDetail = errJson.detail;
-                } catch (e) {
-                    // Fallback to text status
+                    if (errJson.detail) {
+                        errorMessage = errJson.detail;
+                    }
+                } catch (e) { }
+
+                if (response.status === 413) {
+                    errorTitle = 'File Too Large';
+                    errorMessage = 'File payload exceeds the 50 MB upload limit.';
+                } else if (response.status === 401) {
+                    errorTitle = 'Session Expired';
+                    errorMessage = 'Your session has expired. Please re-upload your file.';
+                } else if (response.status === 422) {
+                    errorTitle = 'Schema Mismatch';
+                } else if (response.status === 503) {
+                    errorTitle = 'Server Busy';
+                    errorMessage = 'Server is currently processing other files. Please retry in a few moments.';
                 }
 
-                if (response.status === 401) {
-                    showError('Session Expired', 'Your session has expired. Please re-upload your file to continue.');
-                } else if (response.status === 503) {
-                    showError('Server Busy', errDetail);
-                } else {
-                    showError('Validation Failed', errDetail);
-                }
+                showError(errorTitle, errorMessage);
                 return;
             }
 
             const data = await response.json();
-            showSuccess(data, durationSec);
+            showSuccess(data, elapsedSeconds);
 
         } catch (err) {
             clearInterval(parseTimerInterval);
@@ -257,7 +275,14 @@
 
         const cardName = selectedCard.toUpperCase();
         bannerSuccessTitle.textContent = `${cardName} Headers Added Successfully`;
-        bannerSuccessDesc.textContent = `Mapped ${data.column_count || data.columns.length} columns across ${data.rows.toLocaleString()} rows in ${durationSec}s with 100% data fidelity.`;
+        bannerSuccessDesc.textContent = `Mapped ${data.column_count || data.columns.length} columns across ${data.rows.toLocaleString()} rows in ${durationSec}s.`;
+
+        // Large file guidance for Excel export
+        if (data.rows > 60000) {
+            excelLargeNote.classList.remove('hidden');
+        } else {
+            excelLargeNote.classList.add('hidden');
+        }
 
         // Initialize reusable DataTable
         initPreviewTable(data.preview);
@@ -314,18 +339,24 @@
     }
 
     /**
-     * Download Excel (.xlsx) Export
+     * Shared Export Handler for CSV and Excel
      */
-    btnDownload.addEventListener('click', async () => {
+    async function triggerExport(type) {
         const sessionId = window.CardLyze.getSessionId();
         if (!sessionId) {
             showError('Session Error', 'No active session found. Please re-upload your file.');
             return;
         }
 
-        btnDownload.disabled = true;
+        const isCsv = (type === 'csv');
+        const url = isCsv ? '/api/column-addition/export-csv' : '/api/column-addition/export';
+        const label = isCsv ? 'CSV' : 'Excel';
+
+        btnDownloadCsv.disabled = true;
+        btnDownloadExcel.disabled = true;
         btnClear.disabled = true;
         exportLoadingCard.classList.remove('hidden');
+        exportStatusLabel.textContent = `Preparing ${label} export for download...`;
 
         let exportElapsed = 0;
         exportTimer.textContent = '0s';
@@ -336,7 +367,7 @@
         }, 1000);
 
         try {
-            const response = await fetch('/api/column-addition/export', {
+            const response = await fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Session-Id': sessionId,
@@ -360,8 +391,8 @@
                 return;
             }
 
-            // Extract filename from header or fallback
-            let filename = `${selectedCard}_with_headers.xlsx`;
+            const defaultExt = isCsv ? 'csv' : 'xlsx';
+            let filename = `${selectedCard}_with_headers.${defaultExt}`;
             const disposition = response.headers.get('Content-Disposition');
             if (disposition && disposition.includes('filename=')) {
                 const match = disposition.match(/filename="?([^";]+)"?/);
@@ -370,29 +401,33 @@
                 }
             }
 
-            // Stream response into blob
             const blob = await response.blob();
-
-            // Trigger download via temporary anchor (strict CSP compliant)
             const downloadUrl = URL.createObjectURL(blob);
             const anchor = document.createElement('a');
             anchor.href = downloadUrl;
             anchor.download = filename;
             document.body.appendChild(anchor);
             anchor.click();
-            document.body.removeChild(anchor);
-            URL.revokeObjectURL(downloadUrl);
+            anchor.remove();
+
+            setTimeout(() => {
+                URL.revokeObjectURL(downloadUrl);
+            }, 1000);
 
         } catch (err) {
             clearInterval(exportTimerInterval);
             console.error('Download export error:', err);
-            showError('Export Error', err.message || 'An error occurred while generating the Excel file.');
+            showError('Export Error', err.message || `An error occurred while generating the ${label} file.`);
         } finally {
             exportLoadingCard.classList.add('hidden');
-            btnDownload.disabled = false;
+            btnDownloadCsv.disabled = false;
+            btnDownloadExcel.disabled = false;
             btnClear.disabled = false;
         }
-    });
+    }
+
+    btnDownloadCsv.addEventListener('click', () => triggerExport('csv'));
+    btnDownloadExcel.addEventListener('click', () => triggerExport('excel'));
 
     /**
      * Clear Data
@@ -418,6 +453,7 @@
         fileCard.classList.add('hidden');
         dropzone.classList.remove('hidden');
         hideResults();
+        excelLargeNote.classList.add('hidden');
         if (previewTableContainer) {
             previewTableContainer.replaceChildren();
         }
@@ -442,4 +478,3 @@
     });
 
 })();
-

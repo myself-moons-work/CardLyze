@@ -1,8 +1,10 @@
-"""In-memory Excel workbook processing and schema header mapping."""
+"""In-memory Excel workbook processing, schema header mapping, and streaming export."""
 
+import csv
 import io
 import logging
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Generator, Optional, Union
+import numpy as np
 import pandas as pd
 import xlsxwriter
 
@@ -128,14 +130,15 @@ def add_headers(
     }
 
 
-def to_xlsx_bytes(df: pd.DataFrame) -> bytes:
-    """Serialize DataFrame to .xlsx bytes purely in memory using xlsxwriter.
+def to_xlsx_buffer(df: pd.DataFrame) -> io.BytesIO:
+    """Serialize DataFrame to an in-memory BytesIO buffer using xlsxwriter with optimized tight write loops.
 
     Ensures:
     - Normal in-memory mode with BytesIO (never constant_memory which writes temp files).
     - strings_to_formulas=False (prevents =1+1, +cmd, @x being interpreted as formulas).
     - strings_to_urls=False (prevents http://example.com being turned into hyperlinks).
     - strings_to_numbers=False (prevents '00000003' losing leading zeros).
+    - Zero redundant copying of the output buffer.
     - Exact 100% preservation of text and raw input values.
     """
     buffer = io.BytesIO()
@@ -155,13 +158,82 @@ def to_xlsx_bytes(df: pd.DataFrame) -> bytes:
     for col_idx, h in enumerate(headers):
         worksheet.write_string(0, col_idx, str(h))
 
-    # Write data rows
-    for row_idx, row in enumerate(df.itertuples(index=False, name=None), start=1):
-        for col_idx, val in enumerate(row):
-            if val is None or pd.isna(val):
-                worksheet.write_blank(row_idx, col_idx, None)
+    # Vectorized conversion to numpy object array and null mask handling
+    values = df.to_numpy(dtype=object)
+    null_mask = pd.isna(values)
+    values[null_mask] = ""
+
+    n_rows, n_cols = values.shape
+    write_str = worksheet.write_string
+    write_blk = worksheet.write_blank
+
+    for r in range(n_rows):
+        row_idx = r + 1
+        for c in range(n_cols):
+            val = values[r, c]
+            if val == "":
+                write_blk(row_idx, c, None)
             else:
-                worksheet.write_string(row_idx, col_idx, str(val))
+                write_str(row_idx, c, str(val) if not isinstance(val, str) else val)
 
     workbook.close()
-    return buffer.getvalue()
+    buffer.seek(0)
+    return buffer
+
+
+def to_xlsx_bytes(df: pd.DataFrame) -> bytes:
+    """Backward-compatible helper returning bytes from to_xlsx_buffer."""
+    buf = to_xlsx_buffer(df)
+    return buf.getvalue()
+
+
+def iter_csv_chunks(df: pd.DataFrame, chunk_size: int = 20_000) -> Generator[bytes, None, None]:
+    """Stream DataFrame in chunks encoded as UTF-8 with BOM for Excel compatibility.
+
+    - Writes in chunks of ~20,000 rows.
+    - Encoded UTF-8 with BOM (b'\xef\xbb\xbf') at the start.
+    - Header row emitted only on the first chunk.
+    - Uses pandas to_csv with QUOTE_MINIMAL and CRLF line terminator.
+    - Writes through io.TextIOWrapper over an in-memory BytesIO per chunk.
+    - Zero disk persistence, no full-file buffer.
+    - Preserves values exactly as stored (no padding, no conversion).
+    """
+    total_rows = len(df)
+    first = True
+
+    if total_rows == 0:
+        buf = io.BytesIO()
+        buf.write(b"\xef\xbb\xbf")
+        text_io = io.TextIOWrapper(buf, encoding="utf-8", newline="", write_through=True)
+        pd.DataFrame(columns=df.columns).to_csv(
+            text_io,
+            header=True,
+            index=False,
+            quoting=csv.QUOTE_MINIMAL,
+            lineterminator="\r\n",
+        )
+        text_io.detach()
+        yield buf.getvalue()
+        return
+
+    for start in range(0, total_rows, chunk_size):
+        chunk = df.iloc[start : start + chunk_size]
+        buf = io.BytesIO()
+        if first:
+            buf.write(b"\xef\xbb\xbf")
+            header = True
+            first = False
+        else:
+            header = False
+
+        text_io = io.TextIOWrapper(buf, encoding="utf-8", newline="", write_through=True)
+        chunk.to_csv(
+            text_io,
+            header=header,
+            index=False,
+            quoting=csv.QUOTE_MINIMAL,
+            lineterminator="\r\n",
+            na_rep="",
+        )
+        text_io.detach()
+        yield buf.getvalue()

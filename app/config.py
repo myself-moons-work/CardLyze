@@ -15,18 +15,28 @@ class Settings:
         os.getenv("CARDLYZE_SESSION_TTL_SECONDS", str(1800))  # 30 minutes
     )
     MAX_CONCURRENT_SESSIONS: int = int(
-        os.getenv("CARDLYZE_MAX_CONCURRENT_SESSIONS", "10")
+        os.getenv("MAX_SESSIONS", os.getenv("CARDLYZE_MAX_CONCURRENT_SESSIONS", "2"))
     )
     MAX_CONCURRENT_PARSES: int = int(
-        os.getenv("CARDLYZE_MAX_CONCURRENT_PARSES", "2")
+        os.getenv("MAX_PARALLEL_PARSES", os.getenv("CARDLYZE_MAX_CONCURRENT_PARSES", "1"))
+    )
+    MAX_CONCURRENT_EXPORTS: int = int(
+        os.getenv("MAX_PARALLEL_EXPORTS", os.getenv("CARDLYZE_MAX_CONCURRENT_EXPORTS", "1"))
     )
     PARSE_SEMAPHORE_TIMEOUT_SECONDS: float = float(
         os.getenv("CARDLYZE_PARSE_SEMAPHORE_TIMEOUT", "30.0")
     )
+    EXPORT_SEMAPHORE_TIMEOUT_SECONDS: float = float(
+        os.getenv("CARDLYZE_EXPORT_SEMAPHORE_TIMEOUT", "30.0")
+    )
     SWEEPER_INTERVAL_SECONDS: int = int(
         os.getenv("CARDLYZE_SWEEPER_INTERVAL_SECONDS", "60")
+    )
+    ALLOW_NON_LOOPBACK: bool = os.getenv("ALLOW_NON_LOOPBACK", "0").strip().lower() in (
+        "1",
+        "true",
+        "yes",
     )
 
 
 settings = Settings()
-

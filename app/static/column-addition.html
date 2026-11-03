@@ -30,7 +30,7 @@
     <main class="main-content">
         <section class="hero">
             <h1 class="hero-title">Column Addition</h1>
-            <p class="hero-subtitle">Upload headerless Excel transaction workbooks to automatically append verified standardized headers and export with 100% data fidelity.</p>
+            <p class="hero-subtitle">Upload headerless Excel transaction workbooks to automatically append verified standardized headers and export clean datasets.</p>
         </section>
 
         <!-- Step 1: Card Selection -->
@@ -147,10 +147,22 @@
             <!-- Actions Bar -->
             <div class="preview-actions-bar" id="preview-actions-bar">
                 <div class="preview-actions-left">
-                    <button type="button" class="btn btn-primary btn-lg" id="btn-download">
-                        <span class="btn-icon">⬇</span>
-                        <span>Download Excel (.xlsx)</span>
-                    </button>
+                    <div class="export-button-wrapper">
+                        <button type="button" class="btn btn-primary btn-lg" id="btn-download-csv">
+                            <span class="btn-icon">⬇</span>
+                            <span>Download CSV (fast, recommended for large files)</span>
+                        </button>
+                        <p class="export-hint" id="csv-export-note">Opening a CSV by double-clicking in Excel can drop leading zeros or treat text starting with = as a formula; import it with Data &gt; From Text/CSV and set columns to Text, or load it in pandas with dtype=str.</p>
+                    </div>
+
+                    <div class="export-button-wrapper">
+                        <button type="button" class="btn btn-outline btn-lg" id="btn-download-excel">
+                            <span class="btn-icon">📊</span>
+                            <span>Download Excel</span>
+                        </button>
+                        <p class="export-warning-note hidden" id="excel-large-note">Large file: Excel export can take several minutes on this computer.</p>
+                    </div>
+
                     <button type="button" class="btn btn-outline btn-lg" id="btn-clear">
                         <span class="btn-icon">🗑</span>
                         <span>Clear Data</span>
@@ -164,7 +176,7 @@
             <!-- Exporting indicator -->
             <div class="export-loading-card hidden" id="export-loading-card">
                 <div class="progress-bar-indeterminate"></div>
-                <div class="export-status-text">Preparing Excel file for download... <span id="export-timer">0s</span></div>
+                <div class="export-status-text"><span id="export-status-label">Preparing file for download...</span> <span id="export-timer">0s</span></div>
             </div>
 
             <!-- Preview Data Table Container -->
@@ -175,7 +187,7 @@
     <footer class="footer">
         <div class="footer-container">
             <span>CardLyze &bull; Privacy-Preserving Card Transaction Processing</span>
-            <span>Zero Disk Persistence &bull; Strict CSP &bull; In-Memory xlsxwriter</span>
+            <span>Zero Disk Persistence &bull; Strict CSP &bull; In-Memory Processing</span>
         </div>
     </footer>
 

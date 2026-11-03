@@ -818,9 +818,31 @@ body {
 
 .preview-actions-left {
     display: flex;
-    align-items: center;
-    gap: 1rem;
+    align-items: flex-start;
+    gap: 1.25rem;
     flex-wrap: wrap;
+}
+
+.export-button-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    max-width: 440px;
+}
+
+.export-hint {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+    margin: 0;
+}
+
+.export-warning-note {
+    font-size: 0.75rem;
+    color: #eab308;
+    line-height: 1.35;
+    margin: 0;
+    font-weight: 500;
 }
 
 .preview-actions-right {
