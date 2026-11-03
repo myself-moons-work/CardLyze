@@ -4,6 +4,7 @@ import io
 import logging
 from typing import Any, Dict, Optional, Union
 import pandas as pd
+import xlsxwriter
 
 from app.cards import CardConfig, get_card_config
 
@@ -128,9 +129,39 @@ def add_headers(
 
 
 def to_xlsx_bytes(df: pd.DataFrame) -> bytes:
-    """Serialize DataFrame to .xlsx bytes in memory. Never touches disk."""
-    buffer = io.BytesIO()
-    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False)
-    return buffer.getvalue()
+    """Serialize DataFrame to .xlsx bytes purely in memory using xlsxwriter.
 
+    Ensures:
+    - Normal in-memory mode with BytesIO (never constant_memory which writes temp files).
+    - strings_to_formulas=False (prevents =1+1, +cmd, @x being interpreted as formulas).
+    - strings_to_urls=False (prevents http://example.com being turned into hyperlinks).
+    - strings_to_numbers=False (prevents '00000003' losing leading zeros).
+    - Exact 100% preservation of text and raw input values.
+    """
+    buffer = io.BytesIO()
+    workbook = xlsxwriter.Workbook(
+        buffer,
+        {
+            "in_memory": True,
+            "strings_to_formulas": False,
+            "strings_to_urls": False,
+            "strings_to_numbers": False,
+        },
+    )
+    worksheet = workbook.add_worksheet("Sheet1")
+
+    # Write headers
+    headers = list(df.columns)
+    for col_idx, h in enumerate(headers):
+        worksheet.write_string(0, col_idx, str(h))
+
+    # Write data rows
+    for row_idx, row in enumerate(df.itertuples(index=False, name=None), start=1):
+        for col_idx, val in enumerate(row):
+            if val is None or pd.isna(val):
+                worksheet.write_blank(row_idx, col_idx, None)
+            else:
+                worksheet.write_string(row_idx, col_idx, str(val))
+
+    workbook.close()
+    return buffer.getvalue()
