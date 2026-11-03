@@ -8,3 +8,11 @@ __pycache__/
 diagnostic*.py
 test_real*.py
 scratch/
+
+# Excel and CSV data files
+*.xlsx
+*.xls
+*.csv
+
+# Jupyter notebook checkpoints and outputs
+.ipynb_checkpoints/
