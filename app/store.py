@@ -16,11 +16,13 @@ class SessionData:
     last_accessed_at: float
     coladd: Dict[str, Any] = field(default_factory=dict)
     analysis: Dict[str, Any] = field(default_factory=dict)
+    task1: Dict[str, Any] = field(default_factory=dict)
 
     def wipe(self) -> None:
         """Drop all references to in-memory datasets."""
         self.coladd.clear()
         self.analysis.clear()
+        self.task1.clear()
 
 
 class SessionStore:

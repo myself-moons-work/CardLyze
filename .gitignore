@@ -1,6 +1,7 @@
 /data
 /data_with_headers
-/data_dictionary
+/data_dictionary/*
+!/data_dictionary/*.md
 .venv/
 __pycache__/
 .pytest_cache/

@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routers.column_addition import router as column_addition_router
+from app.routers.task1 import router as task1_router
 from app.security import SecurityHeadersMiddleware
 from app.services.concurrency import run_parse_task
 from app.store import session_store
@@ -130,6 +131,7 @@ async def favicon():
 
 # Include Feature Routers
 app.include_router(column_addition_router)
+app.include_router(task1_router)
 
 
 # Mount static frontend assets

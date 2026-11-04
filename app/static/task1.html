@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardLyze - Task 1: TMS-ATM High-Risk Monitoring</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <span class="brand-icon">CL</span>
+                <span>CardLyze</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/column-addition.html" class="nav-link">Column Addition</a></li>
+                    <li><a href="/task1.html" class="nav-link active" aria-current="page">Task 1: TMS-ATM</a></li>
+                    <li><a href="/analysis.html" class="nav-link">Analysis</a></li>
+                </ul>
+            </nav>
+            <div class="session-indicator" title="Your session is isolated and purely in-memory">
+                <span class="session-dot"></span>
+                <span class="session-text">Session Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1 class="hero-title">TMS-ATM High-Risk Transaction Report</h1>
+            <p class="hero-subtitle">Detect and report high-risk ATM transaction patterns: individuals with frequency &gt; 3 and USD volume &gt; $1,500 on ATM MCCs (6011, 6010, 6050, 6051) for any single day.</p>
+        </section>
+
+        <!-- Notification Banner -->
+        <div class="notification-banner hidden" id="notification-banner" role="alert" aria-live="polite">
+            <span class="notification-icon" id="notification-icon">i</span>
+            <span class="notification-message" id="notification-message"></span>
+            <button class="notification-dismiss" id="notification-dismiss" aria-label="Dismiss message">✕</button>
+        </div>
+
+        <!-- Step 1: Select Card Provider -->
+        <section class="step-section" id="step-1-card-selection">
+            <div class="step-header">
+                <span class="step-badge">Step 1</span>
+                <h2 class="step-title">Select Card Provider &amp; Ingest Data</h2>
+            </div>
+            <p class="step-desc">Select the card scheme and load the workbook. Operates 100% in-memory with zero disk exposure.</p>
+
+            <div class="card-select-grid" role="radiogroup" aria-label="Select Card Provider">
+                <div class="card-option selected" data-card="visa" role="radio" aria-checked="true" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">VISA</span>
+                        <span class="card-option-badge">29 columns</span>
+                    </div>
+                    <p class="card-option-desc">VISA Spend dataset (MCC: <code>spmcat</code>, Account: <code>spacct</code>, USD: <code>spmusa</code>).</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+
+                <div class="card-option" data-card="pinelabs" role="radio" aria-checked="false" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">PineLabs</span>
+                        <span class="card-option-badge">68 columns</span>
+                    </div>
+                    <p class="card-option-desc">PineLabs Spend dataset (MCC: <code>mcc</code>, Account: <code>Wallet Number</code>, USD: <code>Billing Amount</code>).</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+
+                <div class="card-option" data-card="vegapay" role="radio" aria-checked="false" tabindex="0">
+                    <div class="card-option-header">
+                        <span class="card-option-title">Vegapay</span>
+                        <span class="card-option-badge">61 columns</span>
+                    </div>
+                    <p class="card-option-desc">Vegapay Spend dataset (MCC: <code>MCC</code>, Account: <code>Account Number</code>, USD: <code>Billing Amount</code>).</p>
+                    <div class="card-option-check">✓ Selected</div>
+                </div>
+            </div>
+
+            <!-- Upload Area -->
+            <div class="upload-dropzone" id="upload-dropzone" role="button" tabindex="0" aria-label="Upload workbook">
+                <div class="dropzone-icon">📁</div>
+                <h3 class="dropzone-title">Drag &amp; drop transaction workbook here</h3>
+                <p class="dropzone-subtitle">or click to browse from your device (.xlsx only, max 50 MB)</p>
+                <input type="file" id="file-input" class="file-input-hidden" accept=".xlsx" aria-hidden="true">
+            </div>
+
+            <!-- Quick Load Sample Button -->
+            <div class="task1-controls">
+                <button type="button" class="btn btn-secondary" id="btn-load-sample">
+                    ⚡ Quick Load Bundled Sample File
+                </button>
+                <div class="data-quality-note" id="loaded-file-indicator">
+                    Selected card: VISA. Load sample or upload file.
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Choose Target Date & Execute Detection -->
+        <section class="step-section hidden" id="step-2-detection-section">
+            <div class="step-header">
+                <span class="step-badge">Step 2</span>
+                <h2 class="step-title">Choose Target Date &amp; Run Detection</h2>
+            </div>
+            <p class="step-desc">Pick the 1-day monitoring window from dates found in the dataset to evaluate TMS-ATM high-risk rules.</p>
+
+            <div class="task1-controls">
+                <div class="task1-control-group">
+                    <label for="select-target-date" class="task1-control-label">Target Monitoring Date (1 Day)</label>
+                    <select id="select-target-date" class="task1-select">
+                        <option value="">Loading dates...</option>
+                    </select>
+                </div>
+                <div class="task1-control-group">
+                    <span class="task1-control-label">Date Column Filter</span>
+                    <div class="task1-date-badge" id="date-column-badge">
+                        <span>📅</span>
+                        <span id="date-col-name">spbusd (Business Date)</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-primary" id="btn-run-detection">
+                    🔍 Run TMS-ATM Detection (Task 1)
+                </button>
+            </div>
+            <p class="task1-date-note" id="date-col-note">
+                Filtering by bank settlement / ledger business date column.
+            </p>
+
+            <div class="task1-rules-box">
+                <strong>TMS Detection Criteria:</strong> Filter ATM MCCs (<code>6011</code>, <code>6010</code>, <code>6050</code>, <code>6051</code>) → Group by Individual Account → Flag if <code>Frequency &gt; 3</code> AND <code>Total USD &gt; $1,500.00</code> → Generate Alert &amp; Retrieve full unmodified transactions.
+            </div>
+        </section>
+
+        <!-- Loading Progress -->
+        <section class="loading-container hidden" id="loading-container" aria-live="assertive">
+            <div class="spinner"></div>
+            <h3 class="loading-title" id="loading-title">Processing Transactions...</h3>
+            <p class="loading-desc" id="loading-desc">Filtering high-risk ATM MCCs and calculating individual USD aggregates.</p>
+        </section>
+
+        <!-- Step 3: Alert Results & Unmodified Transactions -->
+        <section class="step-section hidden" id="step-3-results-section">
+            <div class="step-header">
+                <span class="step-badge">Results</span>
+                <h2 class="step-title">TMS-ATM Detection Results</h2>
+            </div>
+
+            <!-- KPI Tiles -->
+            <div class="task1-metrics-grid">
+                <div class="task1-metric-tile">
+                    <span class="task1-metric-title">Target Date (<span id="kpi-date-col-label">spbusd</span>)</span>
+                    <span class="task1-metric-val" id="kpi-target-date">-</span>
+                </div>
+                <div class="task1-metric-tile">
+                    <span class="task1-metric-title">Total ATM Transactions</span>
+                    <span class="task1-metric-val" id="kpi-total-atm">0</span>
+                </div>
+                <div class="task1-metric-tile">
+                    <span class="task1-metric-title">Flagged Individuals</span>
+                    <span class="task1-metric-val alert-val" id="kpi-flagged-count">0</span>
+                </div>
+                <div class="task1-metric-tile">
+                    <span class="task1-metric-title">Flagged Transactions</span>
+                    <span class="task1-metric-val alert-val" id="kpi-flagged-rows">0</span>
+                </div>
+            </div>
+
+            <!-- Flagged Individuals Summary Table -->
+            <div class="preview-card">
+                <div class="preview-card-header">
+                    <div>
+                        <h3 class="preview-title">Flagged Individuals Alert Summary</h3>
+                        <p class="preview-subtitle">Individuals receiving +1 Alert with date, transaction frequency (&gt;3), and USD total (&gt;$1500). Use buttons in each row to export an individual's report.</p>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-secondary" id="btn-export-alerts-csv">
+                            📥 Download Alerts Summary (CSV)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task1-table-container">
+                    <table class="task1-table" id="alerts-summary-table">
+                        <thead>
+                            <tr>
+                                <th class="task1-th">Individual Export &amp; View</th>
+                                <th class="task1-th">Alert Status</th>
+                                <th class="task1-th">Target Date (<span id="alert-table-date-col">spbusd</span>)</th>
+                                <th class="task1-th">Account Number</th>
+                                <th class="task1-th">Individual Name / PAN</th>
+                                <th class="task1-th">Frequency (&gt;3)</th>
+                                <th class="task1-th">Total USD Equivalent (&gt;$1500)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alerts-summary-tbody">
+                            <!-- Injected safely via textContent -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Unmodified Transactions Table -->
+            <div class="preview-card">
+                <!-- Filter Banner when viewing specific individual -->
+                <div class="individual-filter-banner hidden" id="individual-filter-banner">
+                    <div class="individual-filter-info">
+                        <span>Showing Transactions for Individual:</span>
+                        <span class="individual-filter-name" id="filter-individual-name">-</span>
+                        <span id="filter-individual-stats"></span>
+                    </div>
+                    <div class="preview-actions-left">
+                        <button type="button" class="btn btn-secondary btn-action-sm" id="btn-reset-individual-filter">
+                            ✕ Show All Flagged Individuals
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task1-export-bar">
+                    <div>
+                        <h3 class="preview-title" id="flagged-transactions-title">Flagged Unmodified Transactions</h3>
+                        <p class="preview-subtitle" id="flagged-transactions-subtitle">Exact raw source records for flagged individuals (zero modifications, zero added columns).</p>
+                    </div>
+                    <div class="preview-actions-left">
+                        <button type="button" class="btn btn-primary" id="btn-download-flagged-csv">
+                            📥 Download Flagged (CSV)
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btn-download-flagged-excel">
+                            📥 Download Flagged (Excel)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="task1-table-container" id="flagged-table-wrapper">
+                    <table class="task1-table" id="flagged-transactions-table">
+                        <thead id="flagged-table-thead">
+                            <!-- Headers injected safely -->
+                        </thead>
+                        <tbody id="flagged-table-tbody">
+                            <!-- Rows injected safely -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 CardLyze Financial Intelligence. All rights reserved. Zero Disk Persistence.</p>
+        </div>
+    </footer>
+
+    <script src="/js/common.js"></script>
+    <script src="/js/task1.js"></script>
+</body>
+</html>
