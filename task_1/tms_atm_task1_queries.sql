@@ -1,5 +1,5 @@
 -- ==============================================================================
--- TASK 1: TMS-ATM High-Risk Transaction Monitoring Alert Logic (T-SQL / MS SQL Server)
+-- Task 1: TMS-ATM High-Risk Transaction Monitoring Alert Logic (T-SQL / MS SQL Server)
 -- ==============================================================================
 -- Card Providers: VISA, PineLabs, Vegapay
 -- ATM MCCs: 6011 (Automated Cash), 6010 (Manual Cash), 6050 (Quasi-Cash), 6051 (Foreign Currency / Money Orders)

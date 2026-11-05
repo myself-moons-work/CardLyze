@@ -363,3 +363,4 @@ GO
 | `MAX(name)` | Satisfies SQL's `GROUP BY` requirement to display the cardholder's name without grouping by it. | `'BHARGAVI SUDUGULA'` |
 | `HAVING ...` | Filters the summary groups **after** aggregating (`COUNT > 3 AND SUM > 1500`). | Flags accounts exceeding limits. |
 | `INNER JOIN` | Links the flagged account list back to the raw table to extract 100% unmodified transaction rows. | Extracts all 29 VISA, 68 PineLabs, or 61 Vegapay columns. |
+

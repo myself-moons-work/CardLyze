@@ -1,7 +1,5 @@
 /data
 /data_with_headers
-/data_dictionary/*
-!/data_dictionary/*.md
 .venv/
 __pycache__/
 .pytest_cache/
@@ -15,5 +13,3 @@ scratch/
 *.xls
 *.csv
 
-# Jupyter notebook checkpoints and outputs
-.ipynb_checkpoints/
