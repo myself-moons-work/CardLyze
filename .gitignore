@@ -13,3 +13,9 @@ scratch/
 *.xls
 *.csv
 
+# Local environment & secrets
+.env
+.env.local
+.s3_mock_storage/
+
+
