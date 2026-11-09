@@ -51,8 +51,11 @@ class S3StorageManager:
         if self._client is None:
             try:
                 import boto3
+                from botocore.client import Config
+
                 kwargs = {
                     "region_name": self.region_name,
+                    "config": Config(connect_timeout=3, read_timeout=5, retries={"max_attempts": 1}),
                 }
                 # LocalStack endpoint override (e.g. http://localhost:4566)
                 if self.endpoint_url:

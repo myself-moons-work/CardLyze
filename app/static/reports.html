@@ -133,14 +133,21 @@
             </p>
 
             <div class="hub-section-header">
-                <div class="task1-controls">
-                    <label for="archive-card-filter" class="hub-sim-label">Filter by Card:</label>
-                    <select id="archive-card-filter" class="task1-select">
-                        <option value="all">All Cards</option>
-                        <option value="VISA">VISA</option>
-                        <option value="PINELABS">PineLabs</option>
-                        <option value="VEGAPAY">Vegapay</option>
-                    </select>
+                <div class="task1-controls archive-filter-bar">
+                    <div class="archive-filter-item">
+                        <label for="archive-card-filter" class="hub-sim-label">Filter by Card:</label>
+                        <select id="archive-card-filter" class="task1-select">
+                            <option value="all">All Cards</option>
+                            <option value="VISA">VISA</option>
+                            <option value="PINELABS">PineLabs</option>
+                            <option value="VEGAPAY">Vegapay</option>
+                        </select>
+                    </div>
+                    <div class="archive-filter-item">
+                        <label for="archive-date-filter" class="hub-sim-label">Filter by Date:</label>
+                        <input type="date" id="archive-date-filter" class="form-input hub-sim-input" title="Filter reports by specific date">
+                    </div>
+                    <button type="button" id="btn-archive-clear-filters" class="btn btn-outline btn-sm" title="Reset card and date filters">✕ Clear Filters</button>
                 </div>
                 <button type="button" id="btn-refresh-archive" class="btn btn-outline btn-sm">↻ Refresh Archive</button>
             </div>
@@ -182,6 +189,32 @@
                     <button type="button" class="btn btn-secondary" id="btn-modal-dismiss">Close</button>
                     <button type="button" class="btn btn-primary hidden" id="btn-modal-download">
                         <span>⬇ Download Excel Workbook</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Batch Result Modal ("Pop-up View") -->
+        <div class="modal-overlay hidden" id="batch-result-modal" role="dialog" aria-modal="true" aria-labelledby="batch-modal-title">
+            <div class="modal-dialog modal-dialog-wide">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <div class="batch-modal-header-meta">
+                            <span class="step-badge" id="batch-modal-status-badge">Batch Completed</span>
+                            <span class="batch-modal-duration" id="batch-modal-duration"></span>
+                        </div>
+                        <h3 class="modal-title" id="batch-modal-title">Daily Batch Execution Summary</h3>
+                        <p class="modal-subtitle" id="batch-modal-subtitle">Target Monitoring Date: --</p>
+                    </div>
+                    <button type="button" class="modal-close-btn" id="btn-batch-modal-close" aria-label="Close dialog">✕</button>
+                </div>
+                <div class="modal-body" id="batch-modal-body">
+                    <!-- Populated dynamically via reports.js -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-batch-modal-dismiss">Close Notice</button>
+                    <button type="button" class="btn btn-primary" id="btn-batch-view-archive">
+                        <span>🔍 View Reports in Archive</span>
                     </button>
                 </div>
             </div>

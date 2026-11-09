@@ -2267,3 +2267,123 @@ body {
     color: #ffffff;
     border-color: var(--accent);
 }
+
+/* Daily Reports Archive Date Filter & Controls */
+.archive-filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-top: 0;
+    padding: 0.65rem 1rem;
+}
+
+.archive-filter-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.archive-empty-text {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.archive-quick-generate-btn {
+    margin-top: 0.75rem;
+}
+
+/* Modal Wide Variant & Batch Result Pop-up */
+.modal-dialog-wide {
+    max-width: 880px;
+    width: 95%;
+}
+
+.batch-modal-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.25rem;
+}
+
+.batch-modal-duration {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-family: monospace;
+}
+
+.batch-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.batch-kpi-card {
+    background: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.batch-kpi-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.batch-kpi-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.batch-kpi-value.danger {
+    color: #ef4444;
+}
+
+.batch-kpi-value.success {
+    color: #22c55e;
+}
+
+.batch-kpi-sub {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.batch-modal-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 0.75rem 0;
+}
+
+.batch-modal-note {
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    margin-top: 1.25rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.batch-card-badge {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-input);
+    color: var(--accent);
+    border: 1px solid var(--border-subtle);
+}
+
