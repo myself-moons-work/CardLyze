@@ -17,6 +17,13 @@ from app.services.concurrency import run_parse_task
 from app.services.scheduler import report_scheduler
 from app.store import session_store
 
+# Configure application logging so INFO-level engine & scheduler events appear in console
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
+logging.getLogger("app").setLevel(logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 

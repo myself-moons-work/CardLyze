@@ -511,5 +511,41 @@
     ],
     "size_bytes": 26514,
     "generated_at": "2026-11-06 12:02:16"
+  },
+  "daily_report_visa_2026-11-08.xlsx": {
+    "filename": "daily_report_visa_2026-11-08.xlsx",
+    "card": "VISA",
+    "date": "2026-11-08",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 5612,
+    "generated_at": "2026-11-09 10:17:41"
+  },
+  "daily_report_pinelabs_2026-11-08.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-08.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-08",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6148,
+    "generated_at": "2026-11-09 10:17:41"
+  },
+  "daily_report_vegapay_2026-11-08.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-08.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-08",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6028,
+    "generated_at": "2026-11-09 10:17:41"
   }
 }
