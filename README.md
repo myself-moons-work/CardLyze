@@ -122,9 +122,9 @@ An individual cardholder is flagged if, within a single calendar day:
 - **Total ATM Volume** > $1,500.00 USD (equivalent converted via card-specific exchange rates)
 - **ATM Merchant Category Codes (MCC)**: `6011` (Automated Cash Disburse), `6010` (Financial Inst - Manual Cash), `6050`, `6051` (Quasi-Cash).
 
-### 2. Cumulative Watchlist (Threshold $\ge 3$ Days)
+### 2. Cumulative Watchlist (Threshold: > 3 Days)
 - Every day an individual breaches the ATM cash-out rule, an alert is added to their record in `report_generation/alert_ledger.json` (`+1 Alert`).
-- When an individual accumulates $\ge 3$ distinct alert days (configurable via `CARDLYZE_CUMULATIVE_ALERT_THRESHOLD`), they breach the watchlist threshold.
+- When an individual accumulates > 3 distinct alert days (configurable via `CARDLYZE_CUMULATIVE_ALERT_THRESHOLD`), they breach the watchlist threshold.
 - The system automatically compiles a **Full History Dossier** (`cumulative_<card>_<acct>.xlsx`) containing the individual's entire lifetime transaction history across all MCCs and dates.
 
 ### 3. Automated Daily Execution & Catch-Up
@@ -162,6 +162,35 @@ To switch to direct database queries:
 
 ---
 
+## ☁️ Cloud Storage & Local S3 Emulation (LocalStack)
+
+CardLyze includes an **S3 Cloud Storage Adapter** ([`app/services/s3_storage.py`](file:///app/services/s3_storage.py)) for automated cloud report archiving and alert ledger synchronization:
+
+1. **Local Mode (Default)**: Saves generated `.xlsx` spreadsheets and `alert_ledger.json` strictly to local folders.
+2. **AWS S3 Mode**: Uploads daily reports (`s3://bucket/daily_reports/...`), cumulative dossiers (`s3://bucket/cumulative_reports/...`), and synchronizes the alert ledger (`s3://bucket/metadata/alert_ledger.json`).
+3. **LocalStack Mode ($0 Free Local Emulator)**: Emulates AWS S3 locally via Docker with 100% offline simulation and zero AWS charges.
+
+### Testing S3 Locally via LocalStack
+Start CardLyze alongside LocalStack with one command:
+
+```bash
+docker compose --profile cloud-mock up
+```
+
+LocalStack exposes S3 at `http://localhost:4566`. In `.env` or `docker-compose.yml`, configure:
+
+```env
+CARDLYZE_STORAGE_BACKEND=s3
+CARDLYZE_S3_ENDPOINT_URL=http://localhost:4566
+CARDLYZE_S3_BUCKET=cardlyze-reports
+AWS_ACCESS_KEY_ID=test
+AWS_SECRET_ACCESS_KEY=test
+```
+
+The system automatically auto-creates the bucket if missing and streams batch reports to local S3.
+
+---
+
 ## ⚙️ Configuration Reference
 
 All settings can be customized via environment variables:
@@ -179,6 +208,10 @@ All settings can be customized via environment variables:
 | `CARDLYZE_USD_THRESHOLD` | `1500.0` | Total USD equivalent volume per day required to trigger alert. |
 | `CARDLYZE_CUMULATIVE_ALERT_THRESHOLD` | `3` | Number of alert days required to trigger full history dossier. |
 | `CARDLYZE_DATA_PROVIDER` | `file` | Data provider: `file` (simulation) or `sql` (AWS RDS). |
+| `CARDLYZE_STORAGE_BACKEND` | `local` | Report storage destination: `local` (disk) or `s3` (AWS S3 / LocalStack). |
+| `CARDLYZE_S3_BUCKET` | `cardlyze-reports` | Target AWS S3 bucket name. |
+| `CARDLYZE_S3_ENDPOINT_URL` | *None* | Custom S3 endpoint URL (set to `http://localhost:4566` for LocalStack). |
+| `CARDLYZE_S3_SAVE_CLEAN_REPORTS` | `1` | Set to `0` to skip uploading clean reports (0 alerts) to S3, reducing API calls. |
 
 ---
 

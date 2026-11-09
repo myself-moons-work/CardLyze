@@ -20,6 +20,7 @@ import pandas as pd
 from app.config import settings
 from app.services.alert_ledger import AlertLedger, alert_ledger
 from app.services.data_provider import TransactionDataProvider, get_data_provider
+from app.services.s3_storage import s3_storage
 from app.services.task1 import run_task1_tms_atm
 
 logger = logging.getLogger(__name__)
@@ -278,6 +279,17 @@ class TMSReportEngine:
         }
         self._save_metadata(meta)
 
+        # 5. Cloud S3 Archival (if STORAGE_BACKEND="s3")
+        s3_report_uri = None
+        if s3_storage.is_enabled:
+            s3_report_uri = s3_storage.upload_daily_report(
+                local_path=daily_filepath,
+                card=card,
+                date_str=target_date,
+                is_clean=(flagged_count == 0),
+            )
+            s3_storage.sync_ledger_to_s3(settings.ALERT_LEDGER_PATH)
+
         return {
             "card_key": card,
             "target_date": target_date,
@@ -289,6 +301,7 @@ class TMSReportEngine:
             "is_clean": flagged_count == 0,
             "daily_report_filename": daily_filename,
             "daily_report_filepath": daily_filepath,
+            "s3_uri": s3_report_uri,
             "alerts": alerts,
             "cumulative_breached_count": len(cumulative_reports_created),
             "cumulative_reports": cumulative_reports_created,
@@ -349,6 +362,10 @@ class TMSReportEngine:
             report_filename=cum_filename,
             target_date=target_date,
         )
+
+        # Upload cumulative report to S3 (if enabled)
+        if s3_storage.is_enabled:
+            s3_storage.upload_cumulative_report(cum_filepath, card, acct)
 
         return cum_filepath, cum_filename
 

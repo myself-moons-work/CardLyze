@@ -2,6 +2,7 @@
 
 import os
 from dataclasses import dataclass
+from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -79,6 +80,23 @@ class Settings:
         "yes",
     )
     STARTUP_CATCHUP_ENABLED: bool = os.getenv("CARDLYZE_STARTUP_CATCHUP_ENABLED", "1").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
+    # -------------------------------------------------------------------------
+    # Cloud Storage & AWS S3 / LocalStack Settings
+    # -------------------------------------------------------------------------
+    STORAGE_BACKEND: str = os.getenv("CARDLYZE_STORAGE_BACKEND", "local").strip().lower()
+    S3_BUCKET_NAME: str = os.getenv("CARDLYZE_S3_BUCKET", "cardlyze-reports")
+    # For LocalStack use: http://localhost:4566 (or http://localstack:4566 in Docker)
+    S3_ENDPOINT_URL: Optional[str] = os.getenv("CARDLYZE_S3_ENDPOINT_URL") or None
+    S3_REGION_NAME: str = os.getenv("CARDLYZE_S3_REGION", "ap-south-1")
+    S3_ACCESS_KEY_ID: Optional[str] = os.getenv("CARDLYZE_S3_ACCESS_KEY_ID") or os.getenv("AWS_ACCESS_KEY_ID")
+    S3_SECRET_ACCESS_KEY: Optional[str] = os.getenv("CARDLYZE_S3_SECRET_ACCESS_KEY") or os.getenv("AWS_SECRET_ACCESS_KEY")
+    # If False, skips uploading clean (0 alerts) spreadsheets to S3 to save bandwidth/API costs
+    S3_SAVE_CLEAN_REPORTS: bool = os.getenv("CARDLYZE_S3_SAVE_CLEAN_REPORTS", "1").strip().lower() in (
         "1",
         "true",
         "yes",

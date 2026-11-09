@@ -23,6 +23,17 @@ services:
       - CARDLYZE_USD_THRESHOLD=1500.0
       - CARDLYZE_CUMULATIVE_ALERT_THRESHOLD=3
 
+      # Storage Backend: 'local' (default) or 's3' (LocalStack or AWS S3)
+      - CARDLYZE_STORAGE_BACKEND=local
+      - CARDLYZE_S3_BUCKET=cardlyze-reports
+      - CARDLYZE_S3_REGION=ap-south-1
+      - CARDLYZE_S3_SAVE_CLEAN_REPORTS=1
+      # To use LocalStack S3 emulator:
+      # - CARDLYZE_STORAGE_BACKEND=s3
+      # - CARDLYZE_S3_ENDPOINT_URL=http://localstack:4566
+      # - AWS_ACCESS_KEY_ID=test
+      # - AWS_SECRET_ACCESS_KEY=test
+
       # Data Provider: 'file' (local simulation) or 'sql' (AWS RDS MS SQL Server)
       - CARDLYZE_DATA_PROVIDER=file
 
@@ -41,4 +52,18 @@ services:
       - ./report_generation/cumulative_output_files:/app/report_generation/cumulative_output_files
       - ./report_generation/alert_ledger.json:/app/report_generation/alert_ledger.json
 
+    restart: unless-stopped
+
+  # Optional local AWS S3 cloud emulator ($0 cost, 100% offline)
+  # Launch with: docker compose --profile cloud-mock up
+  localstack:
+    image: localstack/localstack:latest
+    container_name: cardlyze-localstack
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=s3
+      - DEFAULT_REGION=ap-south-1
+    profiles:
+      - cloud-mock
     restart: unless-stopped
