@@ -1,0 +1,23 @@
+# Virtual environments & bytecode caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Version control & editor artifacts
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Development scratchpads & diagnostic scripts
+scratch/
+diagnostic*.py
+test_real*.py
+*.log
+
+# Large raw files without headers (data_with_headers is used for simulation)
+data/

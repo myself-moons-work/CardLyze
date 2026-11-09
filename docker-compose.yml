@@ -1,0 +1,44 @@
+services:
+  cardlyze:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cardlyze-tms
+    ports:
+      - "8000:8000"
+    environment:
+      # Network & Security
+      - CARDLYZE_HOST=0.0.0.0
+      - CARDLYZE_PORT=8000
+      - ALLOW_NON_LOOPBACK=1
+
+      # Automated Scheduler & Timezone Settings
+      - CARDLYZE_REPORT_TIMEZONE=Asia/Kolkata
+      - CARDLYZE_DAILY_RUN_DELAY_MINUTES=15
+      - CARDLYZE_AUTO_SCHEDULER_ENABLED=1
+      - CARDLYZE_STARTUP_CATCHUP_ENABLED=1
+
+      # Alert Rules Configuration
+      - CARDLYZE_FREQUENCY_THRESHOLD=3
+      - CARDLYZE_USD_THRESHOLD=1500.0
+      - CARDLYZE_CUMULATIVE_ALERT_THRESHOLD=3
+
+      # Data Provider: 'file' (local simulation) or 'sql' (AWS RDS MS SQL Server)
+      - CARDLYZE_DATA_PROVIDER=file
+
+      # AWS RDS MS SQL Server (Uncomment and configure when VPN is active)
+      # - CARDLYZE_DATA_PROVIDER=sql
+      # - CARDLYZE_DB_HOST=your-rds-endpoint.amazonaws.com
+      # - CARDLYZE_DB_PORT=1433
+      # - CARDLYZE_DB_NAME=tms_atm_db
+      # - CARDLYZE_DB_USER=your_db_user
+      # - CARDLYZE_DB_PASSWORD=your_db_password
+      # - CARDLYZE_DB_DRIVER=ODBC Driver 17 for SQL Server
+
+    volumes:
+      # Sync generated reports and alert ledger with host machine
+      - ./report_generation/day_output_files:/app/report_generation/day_output_files
+      - ./report_generation/cumulative_output_files:/app/report_generation/cumulative_output_files
+      - ./report_generation/alert_ledger.json:/app/report_generation/alert_ledger.json
+
+    restart: unless-stopped
