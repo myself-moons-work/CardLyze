@@ -14,6 +14,7 @@ from app.routers.column_addition import router as column_addition_router
 from app.routers.task1 import router as task1_router
 from app.security import SecurityHeadersMiddleware
 from app.services.concurrency import run_parse_task
+from app.services.scheduler import report_scheduler
 from app.store import session_store
 
 logger = logging.getLogger(__name__)
@@ -60,7 +61,19 @@ async def lifespan(app: FastAPI):
                 pass
 
     sweeper_task = asyncio.create_task(sweeper_loop())
+    # Start automated TMS-ATM report scheduler & catch-up service
+    try:
+        report_scheduler.start()
+    except Exception as exc:
+        logger.error("Failed to start automated report scheduler: %s", exc)
+
     yield
+
+    # Shutdown scheduler and sweeper
+    try:
+        report_scheduler.stop()
+    except Exception:
+        pass
     stop_event.set()
     try:
         await sweeper_task

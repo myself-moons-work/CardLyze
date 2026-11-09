@@ -22,8 +22,11 @@ from pydantic import BaseModel
 
 from app.cards import CARDS
 from app.config import settings
+from app.services.alert_ledger import alert_ledger
 from app.services.concurrency import run_export_task, run_parse_task
+from app.services.data_provider import get_data_provider
 from app.services.headers import add_headers, iter_csv_chunks, to_xlsx_buffer
+from app.services.report_engine import report_engine
 from app.services.task1 import get_available_dates, get_card_date_info, run_task1_tms_atm
 from app.store import session_store
 from app.uploads import read_limited_body
@@ -412,4 +415,219 @@ async def export_alerts_csv(
             "X-Content-Type-Options": "nosniff",
         },
     )
+
+
+# =============================================================================
+# Automated Daily Reports & Cumulative Dossier Endpoints
+# =============================================================================
+
+class RunBatchRequest(BaseModel):
+    target_date: Optional[str] = None
+    cards: Optional[List[str]] = None
+
+
+@router.get("/automated/overview")
+async def get_automated_overview():
+    """Retrieve status of automated daily reports, cumulative dossiers, and ledger."""
+    yesterday = report_engine.get_yesterday_date()
+    provider = get_data_provider()
+
+    # List daily files with metadata
+    day_files = []
+    if os.path.exists(settings.DAY_OUTPUT_DIR):
+        for fname in sorted(os.listdir(settings.DAY_OUTPUT_DIR), reverse=True):
+            if fname.endswith(".xlsx") and fname.startswith("daily_report_"):
+                meta = report_engine.get_report_metadata(fname)
+                day_files.append(meta)
+
+    # List cumulative files
+    cum_files = []
+    if os.path.exists(settings.CUMULATIVE_OUTPUT_DIR):
+        for fname in sorted(os.listdir(settings.CUMULATIVE_OUTPUT_DIR), reverse=True):
+            if fname.endswith(".xlsx") and fname.startswith("cumulative_"):
+                parts = fname[:-5].split("_")
+                card = parts[1] if len(parts) >= 4 else "UNKNOWN"
+                acct = parts[2] if len(parts) >= 4 else ""
+                dt = parts[3] if len(parts) >= 4 else ""
+                fpath = os.path.join(settings.CUMULATIVE_OUTPUT_DIR, fname)
+                stat = os.stat(fpath)
+                cum_files.append({
+                    "filename": fname,
+                    "card": card.upper(),
+                    "account_number": acct,
+                    "date": dt,
+                    "size_bytes": stat.st_size,
+                    "modified_at": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(stat.st_mtime)),
+                })
+
+    # Check yesterday's reports status per card
+    yesterday_status = {}
+    total_y_tx = 0
+    total_y_indiv = 0
+    total_y_usd = 0.0
+
+    for card in ("visa", "pinelabs", "vegapay"):
+        expected_name = f"daily_report_{card}_{yesterday}.xlsx"
+        exists = os.path.exists(os.path.join(settings.DAY_OUTPUT_DIR, expected_name))
+        if exists:
+            meta = report_engine.get_report_metadata(expected_name)
+            yesterday_status[card] = {
+                "expected_file": expected_name,
+                "generated": True,
+                "flagged_individuals_count": meta.get("flagged_individuals_count", 0),
+                "flagged_transactions_count": meta.get("flagged_transactions_count", 0),
+                "total_usd_volume": meta.get("total_usd_volume", 0.0),
+                "is_clean": meta.get("is_clean", True),
+                "alerts": meta.get("alerts", []),
+                "size_bytes": meta.get("size_bytes", 0),
+                "generated_at": meta.get("generated_at", ""),
+            }
+            total_y_tx += meta.get("flagged_transactions_count", 0)
+            total_y_indiv += meta.get("flagged_individuals_count", 0)
+            total_y_usd += meta.get("total_usd_volume", 0.0)
+        else:
+            yesterday_status[card] = {
+                "expected_file": expected_name,
+                "generated": False,
+                "flagged_individuals_count": 0,
+                "flagged_transactions_count": 0,
+                "total_usd_volume": 0.0,
+                "is_clean": True,
+                "alerts": [],
+                "size_bytes": 0,
+                "generated_at": "",
+            }
+
+    available_dates = {}
+    for card in ("visa", "pinelabs", "vegapay"):
+        available_dates[card] = provider.get_available_dates(card)[:10]
+
+    # Calculate current month stats (e.g. 2026-11)
+    curr_month_prefix = yesterday[:7] if len(yesterday) >= 7 else "2026-11"
+    curr_month_tx = 0
+    curr_month_indiv_set = set()
+    for item in day_files:
+        dt = item.get("date", "")
+        if dt.startswith(curr_month_prefix):
+            curr_month_tx += item.get("flagged_transactions_count", 0)
+            for a in item.get("alerts", []):
+                curr_month_indiv_set.add(f"{item.get('card')}:{a.get('account_number')}")
+
+    return {
+        "status": "ok",
+        "yesterday_date": yesterday,
+        "yesterday_totals": {
+            "total_flagged_transactions": total_y_tx,
+            "total_flagged_individuals": total_y_indiv,
+            "total_usd_volume": round(total_y_usd, 2),
+        },
+        "monthly_summary": {
+            "current_month": curr_month_prefix,
+            "flagged_transactions_count": curr_month_tx,
+            "flagged_individuals_count": len(curr_month_indiv_set),
+            "historical_query_ready": settings.DATA_SOURCE_PROVIDER == "sql",
+        },
+        "timezone": settings.REPORT_TIMEZONE,
+        "delay_minutes": settings.DAILY_RUN_DELAY_MINUTES,
+        "data_provider": settings.DATA_SOURCE_PROVIDER,
+        "cumulative_threshold": settings.CUMULATIVE_ALERT_THRESHOLD,
+        "yesterday_status": yesterday_status,
+        "daily_reports_count": len(day_files),
+        "cumulative_reports_count": len(cum_files),
+        "recent_daily_reports": day_files[:25],
+        "recent_cumulative_reports": cum_files[:25],
+        "available_dates_sample": available_dates,
+        "ledger_summary": alert_ledger.get_ledger_summary(),
+    }
+
+
+@router.get("/automated/report-details/{filename}")
+async def get_report_details_endpoint(filename: str):
+    """Retrieve structured alert rows and sample flagged transactions for on-top modal view."""
+    safe_name = os.path.basename(filename)
+    details = report_engine.get_report_details(safe_name)
+    if "error" in details:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Report '{safe_name}' not found.",
+        )
+    return details
+
+
+@router.post("/automated/run-batch")
+async def trigger_automated_batch(payload: RunBatchRequest):
+    """Manually trigger daily batch execution on-demand for any date."""
+    try:
+        result = report_engine.run_daily_batch(
+            target_date=payload.target_date,
+            cards=payload.cards,
+        )
+        return result
+    except Exception as exc:
+        logger.exception("Error running batch: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Batch execution failed: {str(exc)}",
+        )
+
+
+@router.get("/automated/download/daily/{filename}")
+async def download_daily_report(filename: str):
+    """Download generated daily report file."""
+    safe_name = os.path.basename(filename)
+    file_path = os.path.join(settings.DAY_OUTPUT_DIR, safe_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Daily report '{safe_name}' not found.",
+        )
+
+    def file_iterator():
+        with open(file_path, "rb") as f:
+            while chunk := f.read(64 * 1024):
+                yield chunk
+
+    return StreamingResponse(
+        file_iterator(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_name}"',
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.get("/automated/download/cumulative/{filename}")
+async def download_cumulative_report(filename: str):
+    """Download generated cumulative investigation dossier."""
+    safe_name = os.path.basename(filename)
+    file_path = os.path.join(settings.CUMULATIVE_OUTPUT_DIR, safe_name)
+    if not os.path.exists(file_path):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Cumulative report '{safe_name}' not found.",
+        )
+
+    def file_iterator():
+        with open(file_path, "rb") as f:
+            while chunk := f.read(64 * 1024):
+                yield chunk
+
+    return StreamingResponse(
+        file_iterator(),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{safe_name}"',
+            "Cache-Control": "no-store, no-cache, must-revalidate",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.get("/automated/ledger")
+async def get_full_alert_ledger():
+    """Retrieve raw alert ledger state."""
+    return alert_ledger.load()
+
 

@@ -38,5 +38,51 @@ class Settings:
         "yes",
     )
 
+    # -------------------------------------------------------------------------
+    # TMS Report Generation & Database Provider Settings
+    # -------------------------------------------------------------------------
+    DATA_SOURCE_PROVIDER: str = os.getenv("CARDLYZE_DATA_PROVIDER", "file").strip().lower()
+
+    # AWS RDS MS SQL Server Connection parameters (used when DATA_SOURCE_PROVIDER="sql")
+    DB_HOST: str = os.getenv("CARDLYZE_DB_HOST", "localhost")
+    DB_PORT: int = int(os.getenv("CARDLYZE_DB_PORT", "1433"))
+    DB_NAME: str = os.getenv("CARDLYZE_DB_NAME", "tms_atm_db")
+    DB_USER: str = os.getenv("CARDLYZE_DB_USER", "")
+    DB_PASSWORD: str = os.getenv("CARDLYZE_DB_PASSWORD", "")
+    DB_DRIVER: str = os.getenv("CARDLYZE_DB_DRIVER", "ODBC Driver 17 for SQL Server")
+
+    # Timezone & Scheduling
+    REPORT_TIMEZONE: str = os.getenv("CARDLYZE_REPORT_TIMEZONE", "Asia/Kolkata")
+    DAILY_RUN_DELAY_MINUTES: int = int(os.getenv("CARDLYZE_DAILY_RUN_DELAY_MINUTES", "15"))
+    # Optional simulation date override for testing historical data without altering system clock
+    SIMULATE_DATE: str = os.getenv("CARDLYZE_SIMULATE_DATE", "").strip()
+
+    # Alert Thresholds
+    FREQUENCY_THRESHOLD: int = int(os.getenv("CARDLYZE_FREQUENCY_THRESHOLD", "3"))
+    USD_THRESHOLD: float = float(os.getenv("CARDLYZE_USD_THRESHOLD", "1500.0"))
+    CUMULATIVE_ALERT_THRESHOLD: int = int(os.getenv("CARDLYZE_CUMULATIVE_ALERT_THRESHOLD", "3"))
+
+    # Storage Paths
+    INPUT_FILES_DIR: str = os.getenv("CARDLYZE_INPUT_FILES_DIR", "report_generation/input_files")
+    DAY_OUTPUT_DIR: str = os.getenv("CARDLYZE_DAY_OUTPUT_DIR", "report_generation/day_output_files")
+    CUMULATIVE_OUTPUT_DIR: str = os.getenv(
+        "CARDLYZE_CUMULATIVE_OUTPUT_DIR", "report_generation/cumulative_output_files"
+    )
+    ALERT_LEDGER_PATH: str = os.getenv(
+        "CARDLYZE_ALERT_LEDGER_PATH", "report_generation/alert_ledger.json"
+    )
+
+    # Scheduler flags
+    AUTO_SCHEDULER_ENABLED: bool = os.getenv("CARDLYZE_AUTO_SCHEDULER_ENABLED", "1").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    STARTUP_CATCHUP_ENABLED: bool = os.getenv("CARDLYZE_STARTUP_CATCHUP_ENABLED", "1").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+
 
 settings = Settings()

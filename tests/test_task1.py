@@ -98,16 +98,16 @@ def test_visa_task1_detection_logic():
 def test_pinelabs_task1_detection_logic():
     # PineLabs uses "Wallet Number", "mcc" with hyphen prefix, and "Billing Amount"
     rows = [
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 500.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 500.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 600.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6010-Manual Cash", "Billing Amount": 100.0},
+        {"Transaction Date": "28/09/2026 14:30:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 500.0},
+        {"Transaction Date": "28/09/2026 15:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 500.0},
+        {"Transaction Date": "28/09/2026 16:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6011-Member ATM Cash", "Billing Amount": 600.0},
+        {"Transaction Date": "28/09/2026 17:00:00", "Wallet Number": "W100", "Device Number": "5417XXXX1111", "mcc": "6010-Manual Cash", "Billing Amount": 100.0},
         
         # Another wallet: 4 txns, but only $400 total
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
-        {"Value Date": "28/09/2026 00:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
+        {"Transaction Date": "28/09/2026 18:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
+        {"Transaction Date": "28/09/2026 19:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
+        {"Transaction Date": "28/09/2026 20:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
+        {"Transaction Date": "28/09/2026 21:00:00", "Wallet Number": "W200", "Device Number": "5417XXXX2222", "mcc": "6011-Member ATM Cash", "Billing Amount": 100.0},
     ]
     df = pd.DataFrame(rows)
 
@@ -123,12 +123,12 @@ def test_pinelabs_task1_detection_logic():
 
 
 def test_vegapay_task1_detection_logic():
-    # Vegapay uses "Account Number", "Card Holder Name", "MCC", "Billing Amount", "Business Date"
+    # Vegapay uses "Account Number", "Card Holder Name", "MCC", "Billing Amount", "Transaction Date"
     rows = [
-        {"Business Date": "2026-10-15", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 800.0},
-        {"Business Date": "2026-10-15", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 800.0},
-        {"Business Date": "2026-10-15", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 500.0},
-        {"Business Date": "2026-10-15", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 200.0},
+        {"Transaction Date": "15-10-2026", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 800.0},
+        {"Transaction Date": "15-10-2026", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 800.0},
+        {"Transaction Date": "15-10-2026", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 500.0},
+        {"Transaction Date": "15-10-2026", "Account Number": "1000000000000999", "Card Holder Name": "John Doe", "MCC": "6011", "Billing Amount": 200.0},
     ]
     df = pd.DataFrame(rows)
 
@@ -229,8 +229,8 @@ def test_task1_api_detect_and_exports(client):
     assert missing_resp.status_code == 404
 
     # 10. Date info verification
-    assert det_data["date_info"]["column_name"] == "spbusd"
-    assert "Business Date" in det_data["date_info"]["column_label"]
+    assert det_data["date_info"]["column_name"] == "spdate"
+    assert "Transaction Date" in det_data["date_info"]["column_label"]
 
 
 def test_task1_session_isolation(client):

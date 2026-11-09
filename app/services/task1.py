@@ -41,30 +41,30 @@ def get_card_date_info(card_key: str) -> Dict[str, str]:
     key = card_key.lower().strip()
     if key == "visa":
         return {
-            "column_name": "spbusd",
-            "column_label": "Business Date (spbusd)",
-            "format": "YYYY-MM-DD",
-            "description": "Bank settlement/ledger business date (spbusd). Daily batch extracts group records by this date.",
+            "column_name": "spdate",
+            "column_label": "Transaction Date (spdate)",
+            "format": "DDMMYYYY",
+            "description": "Cardholder transaction date (spdate). Daily batch extracts group records by actual transaction date.",
         }
     elif key == "pinelabs":
         return {
-            "column_name": "Value Date",
-            "column_label": "Value Date (Business Date)",
+            "column_name": "Transaction Date",
+            "column_label": "Transaction Date",
             "format": "DD/MM/YYYY HH:MM:SS",
-            "description": "Core transaction value/business date. Daily batch extracts group records by this date.",
+            "description": "Cardholder transaction timestamp. Daily batch extracts group records by transaction date.",
         }
     elif key == "vegapay":
         return {
-            "column_name": "Business Date",
-            "column_label": "Business Date",
-            "format": "YYYY-MM-DD",
-            "description": "Core accounting business date. Daily batch extracts group records by this date.",
+            "column_name": "Transaction Date",
+            "column_label": "Transaction Date",
+            "format": "DD-MM-YYYY",
+            "description": "Cardholder transaction date. Daily batch extracts group records by transaction date.",
         }
     return {
-        "column_name": "Date",
-        "column_label": "Date",
+        "column_name": "Transaction Date",
+        "column_label": "Transaction Date",
         "format": "YYYY-MM-DD",
-        "description": "Target monitoring date",
+        "description": "Target monitoring transaction date",
     }
 
 
@@ -141,11 +141,11 @@ def get_available_dates(df: pd.DataFrame, card_key: str) -> List[str]:
     card_key = card_key.lower().strip()
     date_col = None
     if card_key == "visa":
-        date_col = "spbusd" if "spbusd" in df.columns else "spdate"
+        date_col = "spdate" if "spdate" in df.columns else "spbusd"
     elif card_key == "pinelabs":
-        date_col = "Value Date" if "Value Date" in df.columns else "Transaction Date"
+        date_col = "Transaction Date" if "Transaction Date" in df.columns else "Value Date"
     elif card_key == "vegapay":
-        date_col = "Business Date" if "Business Date" in df.columns else "Transaction Date"
+        date_col = "Transaction Date" if "Transaction Date" in df.columns else "Business Date"
 
     if date_col is None or date_col not in df.columns or len(df) == 0:
         return []
@@ -186,19 +186,19 @@ def run_task1_tms_atm(
 
     # 1. Resolve Columns per Card
     if card_key == "visa":
-        date_col = "spbusd" if "spbusd" in df.columns else "spdate"
+        date_col = "spdate" if "spdate" in df.columns else "spbusd"
         mcc_col = "spmcat"
         acct_col = "spacct"
         name_col = "spname"
         usd_col = "spmusa"
     elif card_key == "pinelabs":
-        date_col = "Value Date" if "Value Date" in df.columns else "Transaction Date"
+        date_col = "Transaction Date" if "Transaction Date" in df.columns else "Value Date"
         mcc_col = "mcc"
         acct_col = "Wallet Number"
         name_col = "Device Number"  # PineLabs does not have cardholder name
         usd_col = "Billing Amount"
     elif card_key == "vegapay":
-        date_col = "Business Date" if "Business Date" in df.columns else "Transaction Date"
+        date_col = "Transaction Date" if "Transaction Date" in df.columns else "Business Date"
         mcc_col = "MCC"
         acct_col = "Account Number"
         name_col = "Card Holder Name"

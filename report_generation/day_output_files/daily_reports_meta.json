@@ -1,0 +1,515 @@
+{
+  "daily_report_visa_2026-11-30.xlsx": {
+    "filename": "daily_report_visa_2026-11-30.xlsx",
+    "card": "VISA",
+    "date": "2026-11-30",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 5615,
+    "generated_at": "2026-11-06 12:39:26"
+  },
+  "daily_report_visa_2026-11-07.xlsx": {
+    "filename": "daily_report_visa_2026-11-07.xlsx",
+    "card": "VISA",
+    "date": "2026-11-07",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 5611,
+    "generated_at": "2026-11-06 12:36:21"
+  },
+  "daily_report_visa_2026-11-05.xlsx": {
+    "filename": "daily_report_visa_2026-11-05.xlsx",
+    "card": "VISA",
+    "date": "2026-11-05",
+    "flagged_individuals_count": 1,
+    "flagged_transactions_count": 4,
+    "total_usd_volume": 3000.0,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000002496445",
+        "individual_name": "BHARGAVI SUDUGULA",
+        "alert_date": "2026-11-05",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 3000.0,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 6370,
+    "generated_at": "2026-11-06 13:31:22"
+  },
+  "daily_report_visa_2026-11-04.xlsx": {
+    "filename": "daily_report_visa_2026-11-04.xlsx",
+    "card": "VISA",
+    "date": "2026-11-04",
+    "flagged_individuals_count": 1,
+    "flagged_transactions_count": 4,
+    "total_usd_volume": 2400.0,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000002496445",
+        "individual_name": "BHARGAVI SUDUGULA",
+        "alert_date": "2026-11-04",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 2400.0,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 6371,
+    "generated_at": "2026-11-06 13:57:19"
+  },
+  "daily_report_visa_2026-11-03.xlsx": {
+    "filename": "daily_report_visa_2026-11-03.xlsx",
+    "card": "VISA",
+    "date": "2026-11-03",
+    "flagged_individuals_count": 1,
+    "flagged_transactions_count": 4,
+    "total_usd_volume": 2000.0,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000002496445",
+        "individual_name": "BHARGAVI SUDUGULA",
+        "alert_date": "2026-11-03",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 2000.0,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 6369,
+    "generated_at": "2026-11-06 13:30:23"
+  },
+  "daily_report_visa_2026-11-01.xlsx": {
+    "filename": "daily_report_visa_2026-11-01.xlsx",
+    "card": "VISA",
+    "date": "2026-11-01",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 5611,
+    "generated_at": "2026-11-06 12:36:28"
+  },
+  "daily_report_visa_2026-10-26.xlsx": {
+    "filename": "daily_report_visa_2026-10-26.xlsx",
+    "card": "VISA",
+    "date": "2026-10-26",
+    "flagged_individuals_count": 2,
+    "flagged_transactions_count": 9,
+    "total_usd_volume": 3898.39,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000002496445",
+        "individual_name": "BHARGAVI SUDUGULA",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 1998.39,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001398086",
+        "individual_name": "ANUJA SHINDE",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 1900.0,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 7193,
+    "generated_at": "2026-11-06 12:02:14"
+  },
+  "daily_report_visa_2026-10-02.xlsx": {
+    "filename": "daily_report_visa_2026-10-02.xlsx",
+    "card": "VISA",
+    "date": "2026-10-02",
+    "flagged_individuals_count": 4,
+    "flagged_transactions_count": 23,
+    "total_usd_volume": 10110.87,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000001449799",
+        "individual_name": "ASHISH KHALADKAR",
+        "alert_date": "2026-10-02",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 4816.36,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001756709",
+        "individual_name": "LOVELESH PATI",
+        "alert_date": "2026-10-02",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 1957.85,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001416347",
+        "individual_name": "POOJA GAJJELA",
+        "alert_date": "2026-10-02",
+        "transaction_frequency": 6,
+        "total_usd_equivalent": 1724.74,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001421467",
+        "individual_name": "RAMALINGAM GOVINDARAJ",
+        "alert_date": "2026-10-02",
+        "transaction_frequency": 8,
+        "total_usd_equivalent": 1611.92,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 9154,
+    "generated_at": "2026-11-06 12:02:51"
+  },
+  "daily_report_visa_2026-10-01.xlsx": {
+    "filename": "daily_report_visa_2026-10-01.xlsx",
+    "card": "VISA",
+    "date": "2026-10-01",
+    "flagged_individuals_count": 3,
+    "flagged_transactions_count": 27,
+    "total_usd_volume": 8585.33,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000001449799",
+        "individual_name": "ASHISH KHALADKAR",
+        "alert_date": "2026-10-01",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 4834.4,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000000881317",
+        "individual_name": "ANCHAL DUGGAL",
+        "alert_date": "2026-10-01",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 1999.06,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001845556",
+        "individual_name": "DIPANJAN GHOSH",
+        "alert_date": "2026-10-01",
+        "transaction_frequency": 16,
+        "total_usd_equivalent": 1751.87,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 9427,
+    "generated_at": "2026-11-06 12:02:48"
+  },
+  "daily_report_visa_2026-09-30.xlsx": {
+    "filename": "daily_report_visa_2026-09-30.xlsx",
+    "card": "VISA",
+    "date": "2026-09-30",
+    "flagged_individuals_count": 4,
+    "flagged_transactions_count": 19,
+    "total_usd_volume": 12221.08,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "P000000000001449799",
+        "individual_name": "ASHISH KHALADKAR",
+        "alert_date": "2026-09-30",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 4842.6,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001777898",
+        "individual_name": "KEYA ANGOLKAR",
+        "alert_date": "2026-09-30",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 3838.16,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000002524031",
+        "individual_name": "INDRANIL GUPTA",
+        "alert_date": "2026-09-30",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 1948.16,
+        "alert_count": 1
+      },
+      {
+        "account_number": "P000000000001759509",
+        "individual_name": "AJAY BALAGA",
+        "alert_date": "2026-09-30",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 1592.16,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 8716,
+    "generated_at": "2026-11-06 12:02:47"
+  },
+  "daily_report_vegapay_2026-11-30.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-30.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-30",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 12:39:27"
+  },
+  "daily_report_vegapay_2026-11-07.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-07.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-07",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 12:36:21"
+  },
+  "daily_report_vegapay_2026-11-05.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-05.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-05",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 13:32:09"
+  },
+  "daily_report_vegapay_2026-11-04.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-04.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-04",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 13:58:19"
+  },
+  "daily_report_vegapay_2026-11-03.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-03.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-03",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 13:30:25"
+  },
+  "daily_report_vegapay_2026-11-01.xlsx": {
+    "filename": "daily_report_vegapay_2026-11-01.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-11-01",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 12:36:28"
+  },
+  "daily_report_vegapay_2026-10-26.xlsx": {
+    "filename": "daily_report_vegapay_2026-10-26.xlsx",
+    "card": "VEGAPAY",
+    "date": "2026-10-26",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6027,
+    "generated_at": "2026-11-06 12:02:17"
+  },
+  "daily_report_pinelabs_2026-11-30.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-30.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-30",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6147,
+    "generated_at": "2026-11-06 12:39:27"
+  },
+  "daily_report_pinelabs_2026-11-07.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-07.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-07",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6147,
+    "generated_at": "2026-11-06 12:36:21"
+  },
+  "daily_report_pinelabs_2026-11-05.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-05.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-05",
+    "flagged_individuals_count": 1,
+    "flagged_transactions_count": 4,
+    "total_usd_volume": 1800.0,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "250602XXXXXX7022",
+        "individual_name": "541778XXXXXX1974",
+        "alert_date": "2026-11-05",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 1800.0,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 7551,
+    "generated_at": "2026-11-06 13:32:09"
+  },
+  "daily_report_pinelabs_2026-11-04.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-04.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-04",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6147,
+    "generated_at": "2026-11-06 13:58:01"
+  },
+  "daily_report_pinelabs_2026-11-03.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-03.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-03",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6147,
+    "generated_at": "2026-11-06 13:30:24"
+  },
+  "daily_report_pinelabs_2026-11-01.xlsx": {
+    "filename": "daily_report_pinelabs_2026-11-01.xlsx",
+    "card": "PINELABS",
+    "date": "2026-11-01",
+    "flagged_individuals_count": 0,
+    "flagged_transactions_count": 0,
+    "total_usd_volume": 0,
+    "is_clean": true,
+    "alerts": [],
+    "size_bytes": 6147,
+    "generated_at": "2026-11-06 12:36:28"
+  },
+  "daily_report_pinelabs_2026-10-26.xlsx": {
+    "filename": "daily_report_pinelabs_2026-10-26.xlsx",
+    "card": "PINELABS",
+    "date": "2026-10-26",
+    "flagged_individuals_count": 10,
+    "flagged_transactions_count": 66,
+    "total_usd_volume": 24921.87,
+    "is_clean": false,
+    "alerts": [
+      {
+        "account_number": "250602XXXXXX7022",
+        "individual_name": "541778XXXXXX5094",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 3610.0,
+        "alert_count": 1
+      },
+      {
+        "account_number": "250602XXXXXX9022",
+        "individual_name": "541778XXXXXX9908",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 3231.48,
+        "alert_count": 1
+      },
+      {
+        "account_number": "250602XXXXXX3022",
+        "individual_name": "541778XXXXXX7421",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 5,
+        "total_usd_equivalent": 2892.26,
+        "alert_count": 1
+      },
+      {
+        "account_number": "210415XXXXXX1022",
+        "individual_name": "541778XXXXXX0552",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 11,
+        "total_usd_equivalent": 2802.36,
+        "alert_count": 1
+      },
+      {
+        "account_number": "250602XXXXXX1022",
+        "individual_name": "541778XXXXXX2762",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 2446.56,
+        "alert_count": 1
+      },
+      {
+        "account_number": "230510XXXXXX1022",
+        "individual_name": "541778XXXXXX1517",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 2185.86,
+        "alert_count": 1
+      },
+      {
+        "account_number": "230510XXXXXX7022",
+        "individual_name": "541778XXXXXX0542",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 4,
+        "total_usd_equivalent": 2135.12,
+        "alert_count": 1
+      },
+      {
+        "account_number": "201202XXXXXX2022",
+        "individual_name": "541778XXXXXX5230",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 1986.4,
+        "alert_count": 1
+      },
+      {
+        "account_number": "230510XXXXXX9022",
+        "individual_name": "541778XXXXXX2059",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 7,
+        "total_usd_equivalent": 1947.3,
+        "alert_count": 1
+      },
+      {
+        "account_number": "201202XXXXXX6022",
+        "individual_name": "541778XXXXXX4837",
+        "alert_date": "2026-10-26",
+        "transaction_frequency": 6,
+        "total_usd_equivalent": 1684.53,
+        "alert_count": 1
+      }
+    ],
+    "size_bytes": 26514,
+    "generated_at": "2026-11-06 12:02:16"
+  }
+}

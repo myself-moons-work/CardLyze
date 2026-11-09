@@ -19,7 +19,8 @@
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Home</a></li>
                     <li><a href="/column-addition.html" class="nav-link">Column Addition</a></li>
-                    <li><a href="/task1.html" class="nav-link active" aria-current="page">Task 1: TMS-ATM</a></li>
+                    <li><a href="/task1.html" class="nav-link active" aria-current="page">TMS Dashboard</a></li>
+                    <li><a href="/reports.html" class="nav-link">Reports &amp; Archive</a></li>
                     <li><a href="/analysis.html" class="nav-link">Analysis</a></li>
                 </ul>
             </nav>
@@ -43,6 +44,266 @@
             <span class="notification-message" id="notification-message"></span>
             <button class="notification-dismiss" id="notification-dismiss" aria-label="Dismiss message">✕</button>
         </div>
+
+        <!-- TMS-ATM Executive Monitoring Dashboard (Metrics Only) -->
+        <section class="step-section" id="section-automated-hub">
+            <div class="step-header">
+                <span class="step-badge hub-badge">Live TMS Status</span>
+                <h2 class="step-title">Automated Monitoring &amp; Alert Dashboard</h2>
+            </div>
+            <p class="step-desc">
+                High-level daily operational metrics. Scheduled automation executes daily after midnight (configured
+                delay: 12:15 AM).
+                Select a card provider below or click any metric to view full flagged transactions in an on-top overlay.
+            </p>
+
+            <!-- Executive KPI Metric Cards Strip -->
+            <div class="exec-kpi-grid">
+                <div class="exec-kpi-card" id="kpi-yesterday-window">
+                    <div class="exec-kpi-label">
+                        <span>Yesterday's Window</span>
+                        <span>📅</span>
+                    </div>
+                    <div id="hub-yesterday-date" class="exec-kpi-num">--</div>
+                    <div id="hub-yesterday-status" class="exec-kpi-sub hub-status-success">
+                        <span class="badge badge-success">Automated</span>
+                    </div>
+                </div>
+
+                <div class="exec-kpi-card" id="kpi-yesterday-tx">
+                    <div class="exec-kpi-label">
+                        <span>Yesterday Flagged Tx</span>
+                        <span>⚠️</span>
+                    </div>
+                    <div id="hub-total-flagged-tx" class="exec-kpi-num">0</div>
+                    <div class="exec-kpi-sub hub-status-muted">Across all card schemes</div>
+                </div>
+
+                <div class="exec-kpi-card" id="kpi-yesterday-indiv">
+                    <div class="exec-kpi-label">
+                        <span>Flagged Individuals</span>
+                        <span>👤</span>
+                    </div>
+                    <div id="hub-total-flagged-indiv" class="exec-kpi-num">0</div>
+                    <div class="exec-kpi-sub hub-status-muted">Freq &gt; 3 &amp; Vol &gt; $1.5k</div>
+                </div>
+
+                <div class="exec-kpi-card" id="kpi-cumulative-breached">
+                    <div class="exec-kpi-label">
+                        <span>Watchlist Breached</span>
+                        <span>🚨</span>
+                    </div>
+                    <div id="hub-cumulative-count" class="exec-kpi-num">0</div>
+                    <div class="exec-kpi-sub hub-status-warn">Threshold &ge; 3 Alert Days</div>
+                </div>
+
+                <div class="exec-kpi-card" id="kpi-monthly-summary">
+                    <div class="exec-kpi-label">
+                        <span id="hub-monthly-label">Current Month</span>
+                        <span>📈</span>
+                    </div>
+                    <div id="hub-monthly-tx" class="exec-kpi-num">0</div>
+                    <div class="exec-kpi-sub hub-status-muted" id="hub-monthly-sub">Awaiting Database Access</div>
+                </div>
+            </div>
+
+            <!-- Dedicated Navigable 3-Card Provider Section -->
+            <div class="card-nav-section">
+                <div class="card-nav-header">
+                    <div>
+                        <h3 class="card-nav-title">Card Provider Activity Status</h3>
+                        <p class="step-desc">Switch between providers to view yesterday's alerts and export reports.</p>
+                    </div>
+                    <div class="card-nav-tabs" role="tablist" aria-label="Card Provider Tabs">
+                        <button type="button" class="card-nav-tab active" role="tab" aria-selected="true" id="tab-visa"
+                            data-card="visa">VISA Spend</button>
+                        <button type="button" class="card-nav-tab" role="tab" aria-selected="false" id="tab-pinelabs"
+                            data-card="pinelabs">PineLabs</button>
+                        <button type="button" class="card-nav-tab" role="tab" aria-selected="false" id="tab-vegapay"
+                            data-card="vegapay">Vegapay</button>
+                    </div>
+                </div>
+
+                <!-- Provider Panel: VISA -->
+                <div class="provider-panel" id="panel-visa" role="tabpanel" aria-labelledby="tab-visa">
+                    <div class="provider-status-strip is-clean" id="strip-visa">
+                        <div class="provider-status-info">
+                            <span class="badge badge-success" id="badge-visa">Checking...</span>
+                            <div>
+                                <h4 class="provider-status-heading" id="heading-visa">Loading VISA status...</h4>
+                                <p class="provider-status-sub" id="sub-visa">Checking automated report generation.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="provider-metrics-row">
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Transactions</div>
+                            <div class="provider-metric-val" id="val-visa-tx">0</div>
+                            <div class="provider-metric-hint">MCC 6011, 6010, 6050, 6051</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Individuals</div>
+                            <div class="provider-metric-val" id="val-visa-indiv">0</div>
+                            <div class="provider-metric-hint">Accounts breaching threshold</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Total Flagged Volume</div>
+                            <div class="provider-metric-val" id="val-visa-usd">$0.00</div>
+                            <div class="provider-metric-hint">USD equivalent</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Generated Report File</div>
+                            <div class="provider-metric-val" id="val-visa-file">--</div>
+                            <div class="provider-metric-hint">In /day_output_files</div>
+                        </div>
+                    </div>
+
+                    <div class="provider-actions-row">
+                        <button type="button" class="btn btn-primary" id="btn-view-visa">
+                            <span>🔍 View Yesterday Flagged Details</span>
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-download-visa">
+                            <span>⬇ Download Yesterday Report (.xlsx)</span>
+                        </button>
+                        <span class="step-desc" id="hint-visa"></span>
+                    </div>
+                </div>
+
+                <!-- Provider Panel: PineLabs -->
+                <div class="provider-panel hidden" id="panel-pinelabs" role="tabpanel" aria-labelledby="tab-pinelabs">
+                    <div class="provider-status-strip is-clean" id="strip-pinelabs">
+                        <div class="provider-status-info">
+                            <span class="badge badge-success" id="badge-pinelabs">Checking...</span>
+                            <div>
+                                <h4 class="provider-status-heading" id="heading-pinelabs">Loading PineLabs status...
+                                </h4>
+                                <p class="provider-status-sub" id="sub-pinelabs">Checking automated report generation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="provider-metrics-row">
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Transactions</div>
+                            <div class="provider-metric-val" id="val-pinelabs-tx">0</div>
+                            <div class="provider-metric-hint">MCC 6011, 6010, 6050, 6051</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Individuals</div>
+                            <div class="provider-metric-val" id="val-pinelabs-indiv">0</div>
+                            <div class="provider-metric-hint">Accounts breaching threshold</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Total Flagged Volume</div>
+                            <div class="provider-metric-val" id="val-pinelabs-usd">$0.00</div>
+                            <div class="provider-metric-hint">USD equivalent</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Generated Report File</div>
+                            <div class="provider-metric-val" id="val-pinelabs-file">--</div>
+                            <div class="provider-metric-hint">In /day_output_files</div>
+                        </div>
+                    </div>
+
+                    <div class="provider-actions-row">
+                        <button type="button" class="btn btn-primary" id="btn-view-pinelabs">
+                            <span>🔍 View Yesterday Flagged Details</span>
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-download-pinelabs">
+                            <span>⬇ Download Yesterday Report (.xlsx)</span>
+                        </button>
+                        <span class="step-desc" id="hint-pinelabs"></span>
+                    </div>
+                </div>
+
+                <!-- Provider Panel: Vegapay -->
+                <div class="provider-panel hidden" id="panel-vegapay" role="tabpanel" aria-labelledby="tab-vegapay">
+                    <div class="provider-status-strip is-clean" id="strip-vegapay">
+                        <div class="provider-status-info">
+                            <span class="badge badge-success" id="badge-vegapay">Checking...</span>
+                            <div>
+                                <h4 class="provider-status-heading" id="heading-vegapay">Loading Vegapay status...</h4>
+                                <p class="provider-status-sub" id="sub-vegapay">Checking automated report generation.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="provider-metrics-row">
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Transactions</div>
+                            <div class="provider-metric-val" id="val-vegapay-tx">0</div>
+                            <div class="provider-metric-hint">MCC 6011, 6010, 6050, 6051</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Flagged Individuals</div>
+                            <div class="provider-metric-val" id="val-vegapay-indiv">0</div>
+                            <div class="provider-metric-hint">Accounts breaching threshold</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Total Flagged Volume</div>
+                            <div class="provider-metric-val" id="val-vegapay-usd">$0.00</div>
+                            <div class="provider-metric-hint">USD equivalent</div>
+                        </div>
+                        <div class="provider-metric-box">
+                            <div class="provider-metric-title">Generated Report File</div>
+                            <div class="provider-metric-val" id="val-vegapay-file">--</div>
+                            <div class="provider-metric-hint">In /day_output_files</div>
+                        </div>
+                    </div>
+
+                    <div class="provider-actions-row">
+                        <button type="button" class="btn btn-primary" id="btn-view-vegapay">
+                            <span>🔍 View Yesterday Flagged Details</span>
+                        </button>
+                        <button type="button" class="btn btn-outline" id="btn-download-vegapay">
+                            <span>⬇ Download Yesterday Report (.xlsx)</span>
+                        </button>
+                        <span class="step-desc" id="hint-vegapay"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call-to-Action to Separate Reports Hub -->
+            <div class="reports-hub-cta">
+                <div>
+                    <h3 class="reports-hub-cta-title">📑 Looking for Past Date Reports &amp; Cumulative Dossiers?</h3>
+                    <p class="reports-hub-cta-desc">
+                        Visit the dedicated Reports &amp; Archive Hub to simulate batches for any custom date, browse
+                        the previous daily reports archive, or download full-history dossiers.
+                    </p>
+                </div>
+                <a href="/reports.html" class="btn btn-primary">Open Reports &amp; Archive Hub →</a>
+            </div>
+        </section>
+
+        <!-- On-Top Modal / Overlay Notice ("Pop-up View") -->
+        <div class="modal-overlay hidden" id="report-modal" role="dialog" aria-modal="true"
+            aria-labelledby="modal-title">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <h3 class="modal-title" id="modal-title">Report Details</h3>
+                        <p class="modal-subtitle" id="modal-subtitle">Loading transaction details...</p>
+                    </div>
+                    <button type="button" class="modal-close-btn" id="btn-modal-close"
+                        aria-label="Close dialog">✕</button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- Dynamic modal content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-modal-dismiss">Close</button>
+                    <button type="button" class="btn btn-primary hidden" id="btn-modal-download">
+                        <span>⬇ Download Excel Workbook</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <hr class="hub-section-divider">
 
         <!-- Step 1: Select Card Provider -->
         <section class="step-section" id="step-1-card-selection">
@@ -127,7 +388,7 @@
                     <span class="task1-control-label">Date Column Filter</span>
                     <div class="task1-date-badge" id="date-column-badge">
                         <span>📅</span>
-                        <span id="date-col-name">spbusd (Business Date)</span>
+                        <span id="date-col-name">spdate (Transaction Date)</span>
                     </div>
                 </div>
                 <button type="button" class="btn btn-primary" id="btn-run-detection">
@@ -135,7 +396,7 @@
                 </button>
             </div>
             <p class="task1-date-note" id="date-col-note">
-                Filtering by bank settlement / ledger business date column.
+                Filtering by cardholder transaction date column.
             </p>
 
             <div class="task1-rules-box">
@@ -164,7 +425,7 @@
             <!-- KPI Tiles -->
             <div class="task1-metrics-grid">
                 <div class="task1-metric-tile">
-                    <span class="task1-metric-title">Target Date (<span id="kpi-date-col-label">spbusd</span>)</span>
+                    <span class="task1-metric-title">Target Date (<span id="kpi-date-col-label">spdate</span>)</span>
                     <span class="task1-metric-val" id="kpi-target-date">-</span>
                 </div>
                 <div class="task1-metric-tile">
@@ -203,7 +464,7 @@
                             <tr>
                                 <th class="task1-th">Individual Export &amp; View</th>
                                 <th class="task1-th">Alert Status</th>
-                                <th class="task1-th">Target Date (<span id="alert-table-date-col">spbusd</span>)</th>
+                                <th class="task1-th">Target Date (<span id="alert-table-date-col">spdate</span>)</th>
                                 <th class="task1-th">Account Number</th>
                                 <th class="task1-th">Individual Name / PAN</th>
                                 <th class="task1-th">Frequency (&gt;3)</th>

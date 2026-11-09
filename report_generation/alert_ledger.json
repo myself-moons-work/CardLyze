@@ -1,0 +1,458 @@
+{
+  "visa:P000000000002496445": {
+    "card_key": "visa",
+    "account_number": "P000000000002496445",
+    "individual_name": "BHARGAVI SUDUGULA",
+    "flagged_dates": [
+      "2026-10-26",
+      "2026-11-03",
+      "2026-11-04",
+      "2026-11-05"
+    ],
+    "cumulative_alerts": 4,
+    "last_flagged_date": "2026-11-05",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 5,
+        "total_usd_equivalent": 1998.39
+      },
+      {
+        "date": "2026-11-03",
+        "frequency": 4,
+        "total_usd_equivalent": 2000.0
+      },
+      {
+        "date": "2026-11-04",
+        "frequency": 4,
+        "total_usd_equivalent": 2400.0
+      },
+      {
+        "date": "2026-11-05",
+        "frequency": 4,
+        "total_usd_equivalent": 3000.0
+      }
+    ],
+    "cumulative_report_generated": true,
+    "cumulative_report_file": "cumulative_visa_P000000000002496445_2026-11-04.xlsx",
+    "last_cumulative_report_date": "2026-11-04"
+  },
+  "visa:P000000000001398086": {
+    "card_key": "visa",
+    "account_number": "P000000000001398086",
+    "individual_name": "ANUJA SHINDE",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 4,
+        "total_usd_equivalent": 1900.0
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:250602XXXXXX7022": {
+    "card_key": "pinelabs",
+    "account_number": "250602XXXXXX7022",
+    "individual_name": "541778XXXXXX5094",
+    "flagged_dates": [
+      "2026-10-26",
+      "2026-11-05"
+    ],
+    "cumulative_alerts": 2,
+    "last_flagged_date": "2026-11-05",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 5,
+        "total_usd_equivalent": 3610.0
+      },
+      {
+        "date": "2026-11-05",
+        "frequency": 4,
+        "total_usd_equivalent": 1800.0
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:250602XXXXXX9022": {
+    "card_key": "pinelabs",
+    "account_number": "250602XXXXXX9022",
+    "individual_name": "541778XXXXXX9908",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 7,
+        "total_usd_equivalent": 3231.48
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:250602XXXXXX3022": {
+    "card_key": "pinelabs",
+    "account_number": "250602XXXXXX3022",
+    "individual_name": "541778XXXXXX7421",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 5,
+        "total_usd_equivalent": 2892.26
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:210415XXXXXX1022": {
+    "card_key": "pinelabs",
+    "account_number": "210415XXXXXX1022",
+    "individual_name": "541778XXXXXX0552",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 11,
+        "total_usd_equivalent": 2802.36
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:250602XXXXXX1022": {
+    "card_key": "pinelabs",
+    "account_number": "250602XXXXXX1022",
+    "individual_name": "541778XXXXXX2762",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 7,
+        "total_usd_equivalent": 2446.56
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:230510XXXXXX1022": {
+    "card_key": "pinelabs",
+    "account_number": "230510XXXXXX1022",
+    "individual_name": "541778XXXXXX1517",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 7,
+        "total_usd_equivalent": 2185.86
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:230510XXXXXX7022": {
+    "card_key": "pinelabs",
+    "account_number": "230510XXXXXX7022",
+    "individual_name": "541778XXXXXX0542",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 4,
+        "total_usd_equivalent": 2135.12
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:201202XXXXXX2022": {
+    "card_key": "pinelabs",
+    "account_number": "201202XXXXXX2022",
+    "individual_name": "541778XXXXXX5230",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 7,
+        "total_usd_equivalent": 1986.4
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:230510XXXXXX9022": {
+    "card_key": "pinelabs",
+    "account_number": "230510XXXXXX9022",
+    "individual_name": "541778XXXXXX2059",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 7,
+        "total_usd_equivalent": 1947.3
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "pinelabs:201202XXXXXX6022": {
+    "card_key": "pinelabs",
+    "account_number": "201202XXXXXX6022",
+    "individual_name": "541778XXXXXX4837",
+    "flagged_dates": [
+      "2026-10-26"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-26",
+    "daily_history": [
+      {
+        "date": "2026-10-26",
+        "frequency": 6,
+        "total_usd_equivalent": 1684.53
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001449799": {
+    "card_key": "visa",
+    "account_number": "P000000000001449799",
+    "individual_name": "ASHISH KHALADKAR",
+    "flagged_dates": [
+      "2026-09-30",
+      "2026-10-01",
+      "2026-10-02"
+    ],
+    "cumulative_alerts": 3,
+    "last_flagged_date": "2026-10-02",
+    "daily_history": [
+      {
+        "date": "2026-09-30",
+        "frequency": 4,
+        "total_usd_equivalent": 4842.6
+      },
+      {
+        "date": "2026-10-01",
+        "frequency": 4,
+        "total_usd_equivalent": 4834.4
+      },
+      {
+        "date": "2026-10-02",
+        "frequency": 4,
+        "total_usd_equivalent": 4816.36
+      }
+    ],
+    "cumulative_report_generated": true,
+    "cumulative_report_file": "cumulative_visa_P000000000001449799_2026-10-02.xlsx",
+    "last_cumulative_report_date": "2026-10-02"
+  },
+  "visa:P000000000001777898": {
+    "card_key": "visa",
+    "account_number": "P000000000001777898",
+    "individual_name": "KEYA ANGOLKAR",
+    "flagged_dates": [
+      "2026-09-30"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-09-30",
+    "daily_history": [
+      {
+        "date": "2026-09-30",
+        "frequency": 5,
+        "total_usd_equivalent": 3838.16
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000002524031": {
+    "card_key": "visa",
+    "account_number": "P000000000002524031",
+    "individual_name": "INDRANIL GUPTA",
+    "flagged_dates": [
+      "2026-09-30"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-09-30",
+    "daily_history": [
+      {
+        "date": "2026-09-30",
+        "frequency": 5,
+        "total_usd_equivalent": 1948.16
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001759509": {
+    "card_key": "visa",
+    "account_number": "P000000000001759509",
+    "individual_name": "AJAY BALAGA",
+    "flagged_dates": [
+      "2026-09-30"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-09-30",
+    "daily_history": [
+      {
+        "date": "2026-09-30",
+        "frequency": 5,
+        "total_usd_equivalent": 1592.16
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000000881317": {
+    "card_key": "visa",
+    "account_number": "P000000000000881317",
+    "individual_name": "ANCHAL DUGGAL",
+    "flagged_dates": [
+      "2026-10-01"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-01",
+    "daily_history": [
+      {
+        "date": "2026-10-01",
+        "frequency": 7,
+        "total_usd_equivalent": 1999.06
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001845556": {
+    "card_key": "visa",
+    "account_number": "P000000000001845556",
+    "individual_name": "DIPANJAN GHOSH",
+    "flagged_dates": [
+      "2026-10-01"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-01",
+    "daily_history": [
+      {
+        "date": "2026-10-01",
+        "frequency": 16,
+        "total_usd_equivalent": 1751.87
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001756709": {
+    "card_key": "visa",
+    "account_number": "P000000000001756709",
+    "individual_name": "LOVELESH PATI",
+    "flagged_dates": [
+      "2026-10-02"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-02",
+    "daily_history": [
+      {
+        "date": "2026-10-02",
+        "frequency": 5,
+        "total_usd_equivalent": 1957.85
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001416347": {
+    "card_key": "visa",
+    "account_number": "P000000000001416347",
+    "individual_name": "POOJA GAJJELA",
+    "flagged_dates": [
+      "2026-10-02"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-02",
+    "daily_history": [
+      {
+        "date": "2026-10-02",
+        "frequency": 6,
+        "total_usd_equivalent": 1724.74
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  },
+  "visa:P000000000001421467": {
+    "card_key": "visa",
+    "account_number": "P000000000001421467",
+    "individual_name": "RAMALINGAM GOVINDARAJ",
+    "flagged_dates": [
+      "2026-10-02"
+    ],
+    "cumulative_alerts": 1,
+    "last_flagged_date": "2026-10-02",
+    "daily_history": [
+      {
+        "date": "2026-10-02",
+        "frequency": 8,
+        "total_usd_equivalent": 1611.92
+      }
+    ],
+    "cumulative_report_generated": false,
+    "cumulative_report_file": null,
+    "last_cumulative_report_date": null
+  }
+}

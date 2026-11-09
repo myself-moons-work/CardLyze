@@ -22,22 +22,22 @@
     // Card Date Info Defaults
     const CARD_DATE_INFO = {
         visa: {
-            column_name: 'spbusd',
-            column_label: 'Business Date (spbusd)',
-            format: 'YYYY-MM-DD',
-            description: 'Bank settlement / ledger business date (spbusd). Daily batch extracts group records by this date.'
+            column_name: 'spdate',
+            column_label: 'Transaction Date (spdate)',
+            format: 'DDMMYYYY',
+            description: 'Cardholder transaction date (spdate). Daily batch extracts group records by actual transaction date.'
         },
         pinelabs: {
-            column_name: 'Value Date',
-            column_label: 'Value Date (Business Date)',
+            column_name: 'Transaction Date',
+            column_label: 'Transaction Date',
             format: 'DD/MM/YYYY HH:MM:SS',
-            description: 'Core transaction value / business date. Daily batch extracts group records by this date.'
+            description: 'Cardholder transaction timestamp. Daily batch extracts group records by transaction date.'
         },
         vegapay: {
-            column_name: 'Business Date',
-            column_label: 'Business Date',
-            format: 'YYYY-MM-DD',
-            description: 'Core accounting business date. Daily batch extracts group records by this date.'
+            column_name: 'Transaction Date',
+            column_label: 'Transaction Date',
+            format: 'DD-MM-YYYY',
+            description: 'Cardholder transaction date. Daily batch extracts group records by transaction date.'
         }
     };
 
@@ -128,14 +128,14 @@
     function updateDateInfo(info) {
         const dateMeta = info || CARD_DATE_INFO[currentCard] || {
             column_name: 'Date',
-            column_label: 'Business Date',
-            description: 'Filtering records by business date.'
+            column_label: 'Transaction Date',
+            description: 'Filtering records by cardholder transaction date.'
         };
 
         if (dateColName) dateColName.textContent = dateMeta.column_label || dateMeta.column_name;
         if (dateColNote) dateColNote.textContent = dateMeta.description || '';
-        if (kpiDateColLabel) kpiDateColLabel.textContent = dateMeta.column_name || 'Business Date';
-        if (alertTableDateCol) alertTableDateCol.textContent = dateMeta.column_name || 'Business Date';
+        if (kpiDateColLabel) kpiDateColLabel.textContent = dateMeta.column_name || 'Transaction Date';
+        if (alertTableDateCol) alertTableDateCol.textContent = dateMeta.column_name || 'Transaction Date';
     }
 
     // --- Card Option Selection ---
@@ -710,9 +710,353 @@
         });
     }
 
-    // Initialize session lazily on page load
+    // =========================================================================
+    // TMS Executive Dashboard Controller & On-Top Modal Manager
+    // Strict CSP: Pure DOM methods, zero innerHTML, zero inline styles
+    // =========================================================================
+
+    const hubYesterdayDate = document.getElementById('hub-yesterday-date');
+    const hubYesterdayStatus = document.getElementById('hub-yesterday-status');
+    const hubTotalFlaggedTx = document.getElementById('hub-total-flagged-tx');
+    const hubTotalFlaggedIndiv = document.getElementById('hub-total-flagged-indiv');
+    const hubCumulativeCount = document.getElementById('hub-cumulative-count');
+    const hubMonthlyLabel = document.getElementById('hub-monthly-label');
+    const hubMonthlyTx = document.getElementById('hub-monthly-tx');
+    const hubMonthlySub = document.getElementById('hub-monthly-sub');
+
+    // Modal elements
+    const reportModal = document.getElementById('report-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalSubtitle = document.getElementById('modal-subtitle');
+    const modalBody = document.getElementById('modal-body');
+    const btnModalClose = document.getElementById('btn-modal-close');
+    const btnModalDismiss = document.getElementById('btn-modal-dismiss');
+    const btnModalDownload = document.getElementById('btn-modal-download');
+
+    let currentModalDownloadUrl = '';
+    let currentModalDownloadFilename = '';
+    let globalOverviewData = null;
+
+    function closeModal() {
+        if (reportModal) {
+            reportModal.classList.add('hidden');
+        }
+    }
+
+    if (btnModalClose) btnModalClose.addEventListener('click', closeModal);
+    if (btnModalDismiss) btnModalDismiss.addEventListener('click', closeModal);
+    if (reportModal) {
+        reportModal.addEventListener('click', (e) => {
+            if (e.target === reportModal) closeModal();
+        });
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && reportModal && !reportModal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+
+    if (btnModalDownload) {
+        btnModalDownload.addEventListener('click', () => {
+            if (currentModalDownloadUrl) {
+                const a = document.createElement('a');
+                a.href = currentModalDownloadUrl;
+                a.setAttribute('download', currentModalDownloadFilename || 'report.xlsx');
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+    }
+
+    function openModalForCard(cardKey) {
+        if (!globalOverviewData || !globalOverviewData.yesterday_status) return;
+        const st = globalOverviewData.yesterday_status[cardKey];
+        if (!st) return;
+
+        const cardUpper = cardKey.toUpperCase();
+        const dateStr = globalOverviewData.yesterday_date || '--';
+
+        if (modalTitle) {
+            modalTitle.textContent = `${cardUpper} - Yesterday's Report Details (${dateStr})`;
+        }
+
+        if (modalSubtitle) {
+            modalSubtitle.textContent = st.is_clean
+                ? 'Status: Clean Day (0 Flagged Transactions)'
+                : `${st.flagged_transactions_count} Flagged Transactions | ${st.flagged_individuals_count} Individual(s) | USD $${Number(st.total_usd_volume || 0).toLocaleString()}`;
+        }
+
+        if (btnModalDownload) {
+            if (!st.is_clean && st.generated) {
+                btnModalDownload.classList.remove('hidden');
+                currentModalDownloadUrl = `/api/task1/automated/download/daily/${encodeURIComponent(st.expected_file)}`;
+                currentModalDownloadFilename = st.expected_file;
+            } else {
+                btnModalDownload.classList.add('hidden');
+                currentModalDownloadUrl = '';
+                currentModalDownloadFilename = '';
+            }
+        }
+
+        if (modalBody) {
+            while (modalBody.firstChild) {
+                modalBody.removeChild(modalBody.firstChild);
+            }
+
+            if (st.is_clean) {
+                const cleanBox = document.createElement('div');
+                cleanBox.className = 'clean-state-box';
+
+                const icon = document.createElement('div');
+                icon.className = 'clean-state-icon';
+                icon.textContent = '✅';
+                cleanBox.appendChild(icon);
+
+                const title = document.createElement('h4');
+                title.className = 'clean-state-title';
+                title.textContent = 'No High-Risk Transactions Found';
+                cleanBox.appendChild(title);
+
+                const desc = document.createElement('p');
+                desc.className = 'clean-state-desc';
+                desc.textContent = `All accounts on ${dateStr} operated within normal parameters. No individuals breached the threshold (Frequency > 3 and Volume > $1,500 on ATM MCCs). No download is necessary.`;
+                cleanBox.appendChild(desc);
+
+                modalBody.appendChild(cleanBox);
+            } else {
+                // Table of Flagged Alerts
+                const alerts = st.alerts || [];
+                const tableWrapper = document.createElement('div');
+                tableWrapper.className = 'table-container';
+
+                const table = document.createElement('table');
+                table.className = 'table-human';
+
+                const thead = document.createElement('thead');
+                const headRow = document.createElement('tr');
+                ['Account Number', 'Individual Name', 'Date', 'ATM Frequency', 'Total USD Vol', 'Alert Count'].forEach(h => {
+                    const th = document.createElement('th');
+                    th.textContent = h;
+                    headRow.appendChild(th);
+                });
+                thead.appendChild(headRow);
+                table.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                alerts.forEach(a => {
+                    const tr = document.createElement('tr');
+
+                    // Account
+                    const tdAcct = document.createElement('td');
+                    const code = document.createElement('code');
+                    code.textContent = a.account_number || '';
+                    tdAcct.appendChild(code);
+                    tr.appendChild(tdAcct);
+
+                    // Name
+                    const tdName = document.createElement('td');
+                    tdName.textContent = a.individual_name || 'N/A';
+                    tr.appendChild(tdName);
+
+                    // Date
+                    const tdDate = document.createElement('td');
+                    tdDate.textContent = a.alert_date || dateStr;
+                    tr.appendChild(tdDate);
+
+                    // Frequency
+                    const tdFreq = document.createElement('td');
+                    const freqBadge = document.createElement('span');
+                    freqBadge.className = 'badge badge-warning';
+                    freqBadge.textContent = `${a.transaction_frequency || 0} Tx`;
+                    tdFreq.appendChild(freqBadge);
+                    tr.appendChild(tdFreq);
+
+                    // Total USD
+                    const tdUsd = document.createElement('td');
+                    tdUsd.textContent = `$${Number(a.total_usd_equivalent || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    tr.appendChild(tdUsd);
+
+                    // Alert Count
+                    const tdAlertCount = document.createElement('td');
+                    const alertBadge = document.createElement('span');
+                    alertBadge.className = 'badge badge-danger';
+                    alertBadge.textContent = `+${a.alert_count || 1} Alert`;
+                    tdAlertCount.appendChild(alertBadge);
+                    tr.appendChild(tdAlertCount);
+
+                    tbody.appendChild(tr);
+                });
+                table.appendChild(tbody);
+                tableWrapper.appendChild(table);
+                modalBody.appendChild(tableWrapper);
+            }
+        }
+
+        if (reportModal) {
+            reportModal.classList.remove('hidden');
+        }
+    }
+
+    // 3-Card Tab Switcher setup
+    const cardTabs = ['visa', 'pinelabs', 'vegapay'];
+    cardTabs.forEach(c => {
+        const tabBtn = document.getElementById(`tab-${c}`);
+        if (tabBtn) {
+            tabBtn.addEventListener('click', () => {
+                cardTabs.forEach(other => {
+                    const btn = document.getElementById(`tab-${other}`);
+                    const panel = document.getElementById(`panel-${other}`);
+                    if (btn) {
+                        btn.classList.toggle('active', other === c);
+                        btn.setAttribute('aria-selected', other === c ? 'true' : 'false');
+                    }
+                    if (panel) {
+                        panel.classList.toggle('hidden', other !== c);
+                    }
+                });
+            });
+        }
+
+        // View button in provider panel
+        const viewBtn = document.getElementById(`btn-view-${c}`);
+        if (viewBtn) {
+            viewBtn.addEventListener('click', () => {
+                openModalForCard(c);
+            });
+        }
+
+        // Download button in provider panel
+        const downBtn = document.getElementById(`btn-download-${c}`);
+        if (downBtn) {
+            downBtn.addEventListener('click', () => {
+                if (!globalOverviewData || !globalOverviewData.yesterday_status) return;
+                const st = globalOverviewData.yesterday_status[c];
+                if (st && st.generated) {
+                    if (st.is_clean) {
+                        showNotification('info', `Report for ${c.toUpperCase()} on ${globalOverviewData.yesterday_date} is clean (0 Flagged). Downloaded empty report.`);
+                    }
+                    const a = document.createElement('a');
+                    a.href = `/api/task1/automated/download/daily/${encodeURIComponent(st.expected_file)}`;
+                    a.setAttribute('download', st.expected_file);
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    showNotification('error', `Report for ${c.toUpperCase()} has not been generated yet.`);
+                }
+            });
+        }
+    });
+
+    async function loadAutomatedDashboard() {
+        try {
+            const resp = await fetch('/api/task1/automated/overview');
+            if (!resp.ok) return;
+            const data = await resp.json();
+            globalOverviewData = data;
+
+            // 1. Executive Top KPI Metrics
+            if (hubYesterdayDate) hubYesterdayDate.textContent = data.yesterday_date || '--';
+
+            const totals = data.yesterday_totals || {};
+            if (hubTotalFlaggedTx) hubTotalFlaggedTx.textContent = totals.total_flagged_transactions || 0;
+            if (hubTotalFlaggedIndiv) hubTotalFlaggedIndiv.textContent = totals.total_flagged_individuals || 0;
+
+            const ledgerSummary = data.ledger_summary || {};
+            if (hubCumulativeCount) {
+                hubCumulativeCount.textContent = ledgerSummary.cumulative_breached_count || 0;
+            }
+
+            const monthly = data.monthly_summary || {};
+            if (hubMonthlyLabel) {
+                hubMonthlyLabel.textContent = `${monthly.current_month || 'Current Month'} Status`;
+            }
+            if (hubMonthlyTx) {
+                hubMonthlyTx.textContent = `${monthly.flagged_transactions_count || 0} Tx`;
+            }
+            if (hubMonthlySub) {
+                hubMonthlySub.textContent = monthly.historical_query_ready
+                    ? 'Queried from AWS RDS'
+                    : 'Awaiting Database Access';
+            }
+
+            // 2. Populate Each Card Provider Panel
+            const yesterdayStatus = data.yesterday_status || {};
+            cardTabs.forEach(c => {
+                const st = yesterdayStatus[c];
+                if (!st) return;
+
+                const strip = document.getElementById(`strip-${c}`);
+                const badge = document.getElementById(`badge-${c}`);
+                const heading = document.getElementById(`heading-${c}`);
+                const sub = document.getElementById(`sub-${c}`);
+                const valTx = document.getElementById(`val-${c}-tx`);
+                const valIndiv = document.getElementById(`val-${c}-indiv`);
+                const valUsd = document.getElementById(`val-${c}-usd`);
+                const valFile = document.getElementById(`val-${c}-file`);
+                const downBtn = document.getElementById(`btn-download-${c}`);
+                const hint = document.getElementById(`hint-${c}`);
+
+                if (valTx) valTx.textContent = st.flagged_transactions_count || 0;
+                if (valIndiv) valIndiv.textContent = st.flagged_individuals_count || 0;
+                if (valUsd) {
+                    valUsd.textContent = `$${Number(st.total_usd_volume || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+                if (valFile) valFile.textContent = st.expected_file || '--';
+
+                if (st.is_clean) {
+                    if (strip) {
+                        strip.className = 'provider-status-strip is-clean';
+                    }
+                    if (badge) {
+                        badge.className = 'badge badge-success';
+                        badge.textContent = '✓ Clean Day';
+                    }
+                    if (heading) {
+                        heading.textContent = `0 Flagged Transactions for ${c.toUpperCase()}`;
+                    }
+                    if (sub) {
+                        sub.textContent = `All accounts operated within standard thresholds on ${data.yesterday_date}.`;
+                    }
+                    if (downBtn) {
+                        downBtn.className = 'btn btn-outline btn-sm';
+                    }
+                    if (hint) {
+                        hint.textContent = '✓ Clean report (no high-risk transactions)';
+                    }
+                } else {
+                    if (strip) {
+                        strip.className = 'provider-status-strip has-alerts';
+                    }
+                    if (badge) {
+                        badge.className = 'badge badge-danger';
+                        badge.textContent = '⚠️ High-Risk Activity';
+                    }
+                    if (heading) {
+                        heading.textContent = `${st.flagged_transactions_count} Flagged Transactions across ${st.flagged_individuals_count} Account(s)`;
+                    }
+                    if (sub) {
+                        sub.textContent = `High-risk ATM pattern detected on ${data.yesterday_date}. Review details immediately.`;
+                    }
+                    if (downBtn) {
+                        downBtn.className = 'btn btn-primary btn-sm';
+                    }
+                    if (hint) {
+                        hint.textContent = '⚠️ Action required: Review flagged accounts';
+                    }
+                }
+            });
+
+        } catch (e) {
+            console.warn('Failed to load executive dashboard overview:', e);
+        }
+    }
+
+    // Initialize session and Dashboard on page load
     window.addEventListener('DOMContentLoaded', () => {
         updateDateInfo(CARD_DATE_INFO[currentCard]);
+        loadAutomatedDashboard();
         window.CardLyze.initSession().catch(err => {
             showNotification('error', 'Could not initialize session: ' + err.message);
         });

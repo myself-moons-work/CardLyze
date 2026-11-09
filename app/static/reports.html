@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardLyze - Reports &amp; Archive Hub</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="brand">
+                <span class="brand-icon">CL</span>
+                <span>CardLyze</span>
+            </a>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/column-addition.html" class="nav-link">Column Addition</a></li>
+                    <li><a href="/task1.html" class="nav-link">TMS Dashboard</a></li>
+                    <li><a href="/reports.html" class="nav-link active" aria-current="page">Reports &amp; Archive</a></li>
+                    <li><a href="/analysis.html" class="nav-link">Analysis</a></li>
+                </ul>
+            </nav>
+            <div class="session-indicator" title="Your session is isolated and purely in-memory">
+                <span class="session-dot"></span>
+                <span class="session-text">Session Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero">
+            <h1 class="hero-title">TMS Reports &amp; Investigation Archive</h1>
+            <p class="hero-subtitle">Simulate on-demand daily batch runs, browse generated reports archive, and download entire lifetime history dossiers for individuals reaching the cumulative alert threshold.</p>
+        </section>
+
+        <!-- Notification Banner -->
+        <div class="notification-banner hidden" id="notification-banner" role="alert" aria-live="polite">
+            <span class="notification-icon" id="notification-icon">i</span>
+            <span class="notification-message" id="notification-message"></span>
+            <button class="notification-dismiss" id="notification-dismiss" aria-label="Dismiss message">✕</button>
+        </div>
+
+        <!-- Section 1: Batch Simulator & Report Generator -->
+        <section class="step-section" id="section-batch-simulator">
+            <div class="step-header">
+                <span class="step-badge">Batch Engine</span>
+                <h2 class="step-title">Daily Batch Simulator &amp; On-Demand Report Generator</h2>
+            </div>
+            <p class="step-desc">
+                Execute automated detection for yesterday or any historical date. The batch updates the persistent Alert Ledger (+1 alert per flagged day) and outputs official Excel reports into <code>/day_output_files</code>.
+            </p>
+
+            <div class="hub-action-box">
+                <div class="hub-sim-row">
+                    <label for="hub-sim-date" class="hub-sim-label">Target Monitoring Date:</label>
+                    <input type="date" id="hub-sim-date" class="form-input hub-sim-input">
+
+                    <label for="hub-sim-card" class="hub-sim-label">Card Scheme:</label>
+                    <select id="hub-sim-card" class="task1-select">
+                        <option value="all">All Providers (VISA, PineLabs, Vegapay)</option>
+                        <option value="visa">VISA Spend</option>
+                        <option value="pinelabs">PineLabs Spend</option>
+                        <option value="vegapay">Vegapay Spend</option>
+                    </select>
+
+                    <button type="button" id="hub-btn-run-batch" class="btn btn-primary">
+                        <span>▶ Run Batch Now</span>
+                    </button>
+                    <span id="hub-batch-spinner" class="hidden hub-action-desc">Executing detection &amp; updating ledger...</span>
+                </div>
+                <hr class="hub-separator">
+                <p class="hub-action-desc">
+                    💡 <strong>Idempotency Guarantee:</strong> Running the batch again for an existing date cleanly overwrites that date's report file without creating duplicates. The Alert Ledger tracks unique dates per individual to ensure alerts are never double-counted.
+                </p>
+            </div>
+        </section>
+
+        <!-- Section 2: Cumulative High-Risk Watchlist -->
+        <section class="step-section" id="section-cumulative-watchlist">
+            <div class="step-header">
+                <span class="step-badge badge-danger">High-Risk Pattern Detection</span>
+                <h2 class="step-title">Cumulative High-Risk Watchlist (&ge; 3 Flagged Days)</h2>
+            </div>
+            <p class="step-desc">
+                Individuals who accumulate &ge; 3 flagged alerts automatically trigger a Cumulative Investigation Dossier containing their <strong>entire lifetime transaction history</strong>.
+            </p>
+
+            <!-- Pill Filter Tabs: Eliminates clutter by defaulting to Breached Threshold -->
+            <div class="pill-filter-tabs" role="tablist" aria-label="Watchlist Filter Tabs">
+                <button type="button" class="pill-filter-btn active" id="filter-breached" role="tab" aria-selected="true">
+                    🚨 Breached Watchlist (&ge; 3 Alerts)
+                </button>
+                <button type="button" class="pill-filter-btn" id="filter-emerging" role="tab" aria-selected="false">
+                    ⚠️ Emerging Alerts (1-2 Days)
+                </button>
+                <button type="button" class="pill-filter-btn" id="filter-all" role="tab" aria-selected="false">
+                    All Tracked Accounts
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table-human" id="cumulative-watchlist-table">
+                    <thead>
+                        <tr>
+                            <th>Card</th>
+                            <th>Account Number</th>
+                            <th>Individual Name</th>
+                            <th>Accumulated Alerts</th>
+                            <th>Flagged Dates</th>
+                            <th>Last Flagged</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cumulative-watchlist-tbody">
+                        <tr><td colspan="7" class="hub-table-empty">Loading cumulative watchlist...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Section 3: Daily Reports Archive -->
+        <section class="step-section" id="section-reports-archive">
+            <div class="step-header">
+                <span class="step-badge">Archive</span>
+                <h2 class="step-title">Daily Reports Archive (Previous Dates)</h2>
+            </div>
+            <p class="step-desc">
+                Browse generated daily workbooks. Clean days with 0 flagged transactions are clearly marked to prevent downloading empty files.
+            </p>
+
+            <div class="hub-section-header">
+                <div class="task1-controls">
+                    <label for="archive-card-filter" class="hub-sim-label">Filter by Card:</label>
+                    <select id="archive-card-filter" class="task1-select">
+                        <option value="all">All Cards</option>
+                        <option value="VISA">VISA</option>
+                        <option value="PINELABS">PineLabs</option>
+                        <option value="VEGAPAY">Vegapay</option>
+                    </select>
+                </div>
+                <button type="button" id="btn-refresh-archive" class="btn btn-outline btn-sm">↻ Refresh Archive</button>
+            </div>
+
+            <div class="table-container">
+                <table class="table-human" id="daily-archive-table">
+                    <thead>
+                        <tr>
+                            <th>Card</th>
+                            <th>Target Date</th>
+                            <th>Status &amp; Flagged Count</th>
+                            <th>Total Volume</th>
+                            <th>File Size</th>
+                            <th>Generated Timestamp</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="daily-archive-tbody">
+                        <tr><td colspan="7" class="hub-table-empty">Loading report archive...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- On-Top Modal / Overlay Notice ("Pop-up View") -->
+        <div class="modal-overlay hidden" id="report-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <div class="modal-title-group">
+                        <h3 class="modal-title" id="modal-title">Report Details</h3>
+                        <p class="modal-subtitle" id="modal-subtitle">Loading transaction details...</p>
+                    </div>
+                    <button type="button" class="modal-close-btn" id="btn-modal-close" aria-label="Close dialog">✕</button>
+                </div>
+                <div class="modal-body" id="modal-body">
+                    <!-- Dynamic modal content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-modal-dismiss">Close</button>
+                    <button type="button" class="btn btn-primary hidden" id="btn-modal-download">
+                        <span>⬇ Download Excel Workbook</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <p class="footer-text">CardLyze TMS-ATM High-Risk Monitoring Platform. Confidential Financial Analytics.</p>
+        </div>
+    </footer>
+
+    <script src="/js/session.js"></script>
+    <script src="/js/reports.js"></script>
+</body>
+
+</html>
+
